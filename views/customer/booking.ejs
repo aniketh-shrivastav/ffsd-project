@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Service</title>
+    <link rel="stylesheet" href="/styles/styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="/images/logo.png" alt="AutoCustomizer Logo">
+        </div>
+
+        
+
+        <nav>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/customer/index">Products</a></li>
+                <li><a href="/customer/booking">Services</a></li>
+                <li><a href="/customer/history">Order History</a></li>
+                <li><a href="/customer/payment">Payments</a></li>
+                <li><a href="/customer/cart" class="cart-link">
+                    <img src="/images/cart-icon.png" alt="Cart"> 
+                    <span>Cart</span>
+                </a></li>
+                <li><a href="/customer/profile">Profile</a></li>
+                <li><a href="/logout">Logout</a></li>
+            </ul>
+        </nav>
+
+        
+    </header>
+
+    <main>
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Search for services, car parts...">
+        </div>
+        <h1>Service Booking</h1>
+        <h2>Select your preferred services</h2>
+        
+        <form id="booking-form">
+            <label>Service Type:</label>
+            <select id="service" multiple>
+                <option value="Custom Paint">Custom Paint</option>
+                <option value="Window Tint">Window Tint</option>
+                <option value="Interior Upgrade">Interior Upgrade</option>
+                <option value="Engine Tuning">Engine Tuning</option>
+                <option value="Brake Upgrade">Brake Upgrade</option>
+                <option value="Suspension Modification">Suspension Modification</option>
+            </select>
+
+            <label>Date:</label>
+            <input type="date" id="date" required>
+
+            <label>District:</label>
+            <select id="district" required>
+                <option value="">Select District</option>
+                <option value="District A">District A</option>
+                <option value="District B">District B</option>
+                <option value="District C">District C</option>
+            </select>
+
+            <label>Service Provider:</label>
+            <select id="service-provider" required disabled>
+                <option value="">Select Service Provider</option>
+            </select>
+
+            <button type="submit">Book Now</button>
+        </form>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p>Email: support@autocustomizer.com</p>
+                <p>Phone: +123-456-7890</p>
+                <p>Address: 123 Auto Street, Custom City</p>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <div class="social-icons">
+                    <a href="#"><img src="/images/facebook-icon.png" alt="Facebook"></a>
+                    <a href="#"><img src="/images/twitter-icon.png" alt="Twitter"></a>
+                    <a href="#"><img src="/images/instagram-icon.png" alt="Instagram"></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 AutoCustomizer. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("mobileMenu").classList.toggle("show");
+        }
+        
+        const serviceProviders = {
+            "District A": ["Provider A1", "Provider A2"],
+            "District B": ["Provider B1", "Provider B2"],
+            "District C": ["Provider C1", "Provider C2"]
+        };
+
+        document.getElementById("district").addEventListener("change", function() {
+            let district = this.value;
+            let providerSelect = document.getElementById("service-provider");
+            providerSelect.innerHTML = '<option value="">Select Service Provider</option>';
+            if (district && serviceProviders[district]) {
+                serviceProviders[district].forEach(provider => {
+                    let option = document.createElement("option");
+                    option.value = provider;
+                    option.textContent = provider;
+                    providerSelect.appendChild(option);
+                });
+                providerSelect.disabled = false;
+            } else {
+                providerSelect.disabled = true;
+            }
+        });
+
+        document.getElementById("booking-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            let selectedServices = Array.from(document.getElementById("service").selectedOptions).map(option => option.value);
+            let date = document.getElementById("date").value;
+            let district = document.getElementById("district").value;
+            let provider = document.getElementById("service-provider").value;
+
+            if (!district || !provider) {
+                alert("Please select a district and a service provider.");
+                return;
+            }
+
+            let upcomingServices = JSON.parse(localStorage.getItem("upcomingServices")) || [];
+            
+            selectedServices.forEach(service => {
+                upcomingServices.push({ service: service, date: date, district: district, provider: provider });
+            });
+
+            localStorage.setItem("upcomingServices", JSON.stringify(upcomingServices));
+
+            alert("Services booked successfully!");
+            window.location.href = "history.html";
+        });
+    </script>
+</body>
+</html>

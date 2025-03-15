@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #d3d3d3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .profile-container {
+            background: #f8f1e4;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+            width: 400px;
+        }
+        .header {
+            background: black;
+            color: white;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .header div {
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 3px;
+            margin-right: 10px;
+        }
+        .profile-content {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fffce8;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .profile-content img {
+            width: 80px;
+            height: 80px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            display: block;
+            margin: 10px auto;
+        }
+        .profile-content input[type="file"] {
+            display: block;
+            margin: 10px auto;
+        }
+        .profile-content label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .profile-content input[type="text"],
+        .profile-content input[type="tel"] {
+            width: 100%;
+            padding: 5px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .buttons button {
+            background: black;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <a href="/customer/index">Back to Dashboard</a>
+        <div class="header">
+            <div></div>
+            <span>Profile</span>
+        </div>
+        <div class="profile-content">
+            <img id="profileImage" src="images/profile-placeholder.png" alt="Profile Picture">
+            <input type="file" id="imageUpload" accept="image/*">
+            <label for="name">Name:</label>
+            <input type="text" id="name" placeholder="Enter your name">
+            <label for="phone">Ph.no:</label>
+            <input type="tel" id="phone" placeholder="Enter your phone number">
+            <label for="address">Address:</label>
+            <input type="text" id="address" placeholder="Enter your address">
+            <label for="payments">Payments:</label>
+            <input type="text" id="payments" placeholder="Enter payment details">
+        </div>
+        <div class="buttons">
+            <button onclick="logout()">Logout</button>
+            <button onclick="saveChanges()">Update changes</button>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("name").value = localStorage.getItem("name") || "";
+            document.getElementById("phone").value = localStorage.getItem("phone") || "";
+            document.getElementById("address").value = localStorage.getItem("address") || "";
+            document.getElementById("payments").value = localStorage.getItem("payments") || "";
+            
+            const savedImage = localStorage.getItem("profileImage");
+            if (savedImage) {
+                document.getElementById("profileImage").src = savedImage;
+            }
+        });
+
+        document.getElementById("imageUpload").addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById("profileImage").src = e.target.result;
+                    localStorage.setItem("profileImage", e.target.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function saveChanges() {
+            localStorage.setItem("name", document.getElementById("name").value);
+            localStorage.setItem("phone", document.getElementById("phone").value);
+            localStorage.setItem("address", document.getElementById("address").value);
+            localStorage.setItem("payments", document.getElementById("payments").value);
+            alert("Profile updated successfully!");
+        }
+
+        function logout() {
+            localStorage.clear();
+            document.getElementById("name").value = "";
+            document.getElementById("phone").value = "";
+            document.getElementById("address").value = "";
+            document.getElementById("payments").value = "";
+            document.getElementById("profileImage").src = "images/profile-placeholder.png";
+            alert("Logged out successfully!");
+        }
+    </script>
+</body>
+</html>

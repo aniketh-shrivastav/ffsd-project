@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments & Billing</title>
+    <link rel="stylesheet" href="/styles/styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="public/images3/logo2.jpg" alt="AutoCustomizer Logo"> <!-- Replace with actual logo -->
+        </div>
+
+        
+
+        <nav>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/customer/index">Products</a></li>
+                <li><a href="/customer/booking">Services</a></li>
+                <li><a href="/customer/history">Order History</a></li>
+                <li><a href="/customer/payment">Payments</a></li>
+                <li><a href="/customer/cart" class="cart-link">
+                    <img src="/images/cart-icon.png" alt="Cart"> 
+                    <span>Cart</span>
+                </a></li>
+                <li><a href="/customer/profile">Profile</a></li>
+                <li><a href="/logout">Logout</a></li>
+
+            </ul>
+        </nav>
+
+    
+    </header>
+
+    <main>
+        <h2>Saved Payment Methods</h2>
+        <ul id="payment-methods"></ul>
+
+        <h2>Add New Payment Method</h2>
+        <form id="payment-form">
+            <label for="card-number">Card Number:</label>
+            <input type="text" id="card-number" placeholder="**** **** **** ****" required>
+
+            <label for="expiry">Expiry Date:</label>
+            <input type="month" id="expiry" required>
+
+            <label for="cvv">CVV:</label>
+            <input type="text" id="cvv" placeholder="123" required>
+
+            <button type="submit">Save Payment Method</button>
+        </form>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            loadPaymentMethods();
+        });
+
+        function loadPaymentMethods() {
+            let savedPayments = JSON.parse(localStorage.getItem("paymentMethods")) || [];
+            let paymentList = document.getElementById("payment-methods");
+            paymentList.innerHTML = "";
+
+            if (savedPayments.length === 0) {
+                paymentList.innerHTML = "<p>No saved payment methods.</p>";
+                return;
+            }
+
+            savedPayments.forEach((payment, index) => {
+                let li = document.createElement("li");
+                li.innerHTML = `${payment} <button class="remove" data-index="${index}">Remove</button>`;
+                paymentList.appendChild(li);
+            });
+
+            document.querySelectorAll(".remove").forEach(button => {
+                button.addEventListener("click", function () {
+                    let index = this.getAttribute("data-index");
+                    savedPayments.splice(index, 1);
+                    localStorage.setItem("paymentMethods", JSON.stringify(savedPayments));
+                    loadPaymentMethods();
+                });
+            });
+        }
+
+        document.getElementById("payment-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+            
+            let cardNumber = document.getElementById("card-number").value;
+            let expiry = document.getElementById("expiry").value;
+            let cvv = document.getElementById("cvv").value;
+
+            if (!cardNumber || !expiry || !cvv) {
+                alert("Please fill in all payment details.");
+                return;
+            }
+
+            let maskedCard = `Visa - **** ${cardNumber.slice(-4)} (Exp: ${expiry})`;
+            let savedPayments = JSON.parse(localStorage.getItem("paymentMethods")) || [];
+            savedPayments.push(maskedCard);
+            localStorage.setItem("paymentMethods", JSON.stringify(savedPayments));
+
+            alert("Payment method saved successfully!");
+            loadPaymentMethods();
+            document.getElementById("payment-form").reset();
+        });
+    </script>
+</body>
+</html>
