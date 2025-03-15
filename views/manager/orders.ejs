@@ -159,19 +159,18 @@
     }
 
     function viewOrder(orderId) {
-      const order = orders.find(o => o.id === orderId);
-      if (order) {
-        modalContent.innerHTML = `
-          <p><strong>Order ID:</strong> ${order.id}</p>
-          <p><strong>Customer:</strong> ${order.customer}</p>
-          <p><strong>Service:</strong> ${order.service}</p>
-          <p><strong>Amount:</strong> $${order.amount.toFixed(2)}</p>
-          <p><strong>Status:</strong> ${order.status}</p>
-          <p><strong>Date:</strong> ${new Date(order.date).toLocaleDateString()}</p>
-        `;
-        modal.style.display = 'block';
-      }
-    }
+  const order = orders.find(o => o.id === orderId);
+  if (order) {
+    alert(
+      `Order ID: ${order.id}\n` +
+      `Customer: ${order.customer}\n` +
+      `Service: ${order.service}\n` +
+      `Amount: ₹${order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}\n` +
+      `Status: ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}\n` +
+      `Date: ${new Date(order.date).toLocaleDateString()}`
+    );
+  }
+}
 
     function resolveDispute(orderId) {
       const idx = orders.findIndex(o => o.id === orderId);
