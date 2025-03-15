@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Orders & Bookings</title>
+  <link rel="stylesheet" href="/styles/admin-consistent.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="logo"><h2>Manager's Panel</h2></div>
+    <nav>
+      <ul>
+        <li><a href="/manager/dashboard">Dashboard</a></li>
+        <li><a href="/manager/users">User Management</a></li>
+        <li><a href="/manager/services">User Profiles</a></li>
+        <li><a href="/manager/orders" class="active">Orders & Bookings</a></li>
+        <li><a href="/manager/payments">Payments</a></li>
+        <li><a href="/manager/support">Support</a></li>
+        <li><a href="/logout">Logout</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content">
+    <h1>Order & Booking Oversight</h1>
+
+    <!-- Search -->
+    <div class="search-bar" style="margin-bottom: 1.5rem;">
+      <input type="text" id="searchInput" placeholder="Search orders..." />
+      <button class="tab-btn">Filter</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Active Orders</h3>
+        <div class="number" id="activeOrders">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Pending</h3>
+        <div class="number" id="pendingOrders">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Disputes</h3>
+        <div class="number" id="disputeOrders">0</div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container" style="margin-top: 2rem;">
+      <table class="order-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Service/Product</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="orderTableBody">
+          <!-- Dynamic Content -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="orderModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const orders = [
+    {
+      id: "ORD-1001",
+      customer: "Ananya Mehta",
+      service: "Custom Alloy Wheels",
+      amount: 1200.00,
+      status: "completed",
+      date: "2025-03-12"
+    },
+    {
+      id: "ORD-1002",
+      customer: "Rohit Khanna",
+      service: "Ceramic Coating",
+      amount: 2200.00,
+      status: "pending",
+      date: "2025-03-13"
+    },
+    {
+      id: "ORD-1003",
+      customer: "Meera Rao",
+      service: "Interior LED Setup",
+      amount: 800.00,
+      status: "disputed",
+      date: "2025-03-11"
+    },
+    {
+      id: "ORD-1004",
+      customer: "Karan Patel",
+      service: "Performance Exhaust Installation",
+      amount: 3500.00,
+      status: "completed",
+      date: "2025-03-10"
+    },
+    {
+      id: "ORD-1005",
+      customer: "Priya Sharma",
+      service: "Custom Seat Upholstery",
+      amount: 1750.00,
+      status: "pending",
+      date: "2025-03-14"
+    }
+  ];
+
+    const orderTableBody = document.getElementById('orderTableBody');
+    const searchInput = document.getElementById('searchInput');
+    const modal = document.getElementById('orderModal');
+    const modalContent = document.getElementById('modalContent');
+    const closeModal = document.querySelector('.close');
+
+    function updateStats() {
+      const stats = { completed: 0, pending: 0, disputed: 0 };
+      orders.forEach(o => stats[o.status]++);
+      document.getElementById('activeOrders').textContent = stats.completed;
+      document.getElementById('pendingOrders').textContent = stats.pending;
+      document.getElementById('disputeOrders').textContent = stats.disputed;
+    }
+
+    function renderOrders(data = orders) {
+      orderTableBody.innerHTML = '';
+      data.forEach(order => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${order.id}</td>
+          <td>${order.customer}</td>
+          <td>${order.service}</td>
+          <td>₹${order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          <td><span class="status status-${order.status}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span></td>
+          <td>${new Date(order.date).toLocaleDateString()}</td>
+          <td>
+            <button class="btn btn-view" onclick="viewOrder('${order.id}')">View</button>
+            ${order.status === 'disputed' ? `<button class="btn btn-resolve" onclick="resolveDispute('${order.id}')">Resolve</button>` : ''}
+          </td>
+        `;
+        orderTableBody.appendChild(row);
+      });
+    }
+
+    function viewOrder(orderId) {
+      const order = orders.find(o => o.id === orderId);
+      if (order) {
+        modalContent.innerHTML = `
+          <p><strong>Order ID:</strong> ${order.id}</p>
+          <p><strong>Customer:</strong> ${order.customer}</p>
+          <p><strong>Service:</strong> ${order.service}</p>
+          <p><strong>Amount:</strong> $${order.amount.toFixed(2)}</p>
+          <p><strong>Status:</strong> ${order.status}</p>
+          <p><strong>Date:</strong> ${new Date(order.date).toLocaleDateString()}</p>
+        `;
+        modal.style.display = 'block';
+      }
+    }
+
+    function resolveDispute(orderId) {
+      const idx = orders.findIndex(o => o.id === orderId);
+      if (idx !== -1) {
+        orders[idx].status = 'completed';
+        updateStats();
+        renderOrders();
+      }
+    }
+
+    closeModal.onclick = () => modal.style.display = 'none';
+    window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
+
+    searchInput.addEventListener('input', e => {
+      const term = e.target.value.toLowerCase();
+      const filtered = orders.filter(o =>
+        o.id.toLowerCase().includes(term) ||
+        o.customer.toLowerCase().includes(term) ||
+        o.service.toLowerCase().includes(term)
+      );
+      renderOrders(filtered);
+    });
+
+    updateStats();
+    renderOrders();
+  </script>
+</body>
+</html>

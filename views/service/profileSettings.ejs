@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Settings</title>
+    <link rel="stylesheet" href="/styles/profileSettings.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo-brand">
+            <img src="/public/images3/logo2.jpg" alt="Logo" class="logo">
+            <span class="brand">AutoCustomizer</span>
+        </div>
+        <!-- <a href="#" class="menu-btn" onclick="toggleSidebar()">☰</a> -->
+        <div class="nav-links" id="navLinks">
+            <a href="/service/dashboardService">Dashboard</a>
+            <a href="/service/profileSettings">Profile Settings</a>
+            <a href="/service/bookingManagement">Booking Management</a>
+            <a href="/service/customerCommunication">Customer Communication</a>
+            <a href="/service/earnings">Earnings & Payouts</a>
+            <a href="/service/reviews">Reviews & Ratings</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="sidebar" id="sidebar">
+        <!-- <a href="#" class="close-btn" onclick="toggleSidebar()">&times; Close</a> -->
+        <a href="/service/dashboardService"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="/service/profileSettings"><i class="fas fa-user-cog"></i> Profile</a>
+        <a href="/service/bookingManagement"><i class="fas fa-calendar-alt"></i> Bookings</a>
+        <a href="/service/customerCommunication"><i class="fas fa-comments"></i> Communication</a>
+        <a href="/service/earnings"><i class="fas fa-money-bill-wave"></i> Earnings</a>
+        <a href="/service/reviews"><i class="fas fa-star"></i> Reviews</a>
+    </div>
+    <div class="profile-container">
+        <!-- Profile Picture -->
+        <div class="profile-pic-container">
+            <img src="/public/images3/image5.jpg" alt="Profile Picture" class="profile-pic">
+        </div>
+
+        <h1>Profile Settings</h1>
+        <form id="profileForm">
+            <label>ID:</label>
+            <input type="text" id="id_s" value="S36YGSF" disabled>
+            
+            <label>Name:</label>
+            <input type="text" id="name" value="Aryan Sharma" disabled>
+            
+            <label>Email:</label>
+            <input type="email" id="email" value="aryan.sharma@gmail.com" disabled>
+            
+            <label>Phone:</label>
+            <input type="tel" id="phone" value="9876543210" disabled>
+
+            <button type="button" class="btn edit-pass-btn" onclick="togglePasswordField()">Edit Password</button>
+
+            <div class="password-container" id="passwordField">
+                <label>New Password:</label>
+                <input type="password" id="password">
+            </div>
+            
+            <div class="services-container">
+                <h2>Services Offered</h2>
+                <ul class="service-list" id="serviceList">
+                    <li class="service-item">Car Repair <button class="delete-btn" onclick="removeService(this)">Delete</button></li>
+                    <li class="service-item">Oil Change <button class="delete-btn" onclick="removeService(this)">Delete</button></li>
+                    <li class="service-item">Car Detailing <button class="delete-btn" onclick="removeService(this)">Delete</button></li>
+                    <li class="service-item">Tire Replacement <button class="delete-btn" onclick="removeService(this)">Delete</button></li>
+                </ul>
+
+                <div class="service-input-container">
+                    <input type="text" id="newService" placeholder="Add new service">
+                    <button type="button" class="btn add-service-btn" onclick="addService()">Add Service</button>
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button type="button" class="btn edit-btn" onclick="enableEdit()">Edit</button>
+                <button type="button" class="btn save-btn" id="saveBtn" onclick="saveChanges()">Save</button>
+                <button type="button" class="btn cancel-btn" id="cancelBtn" onclick="cancelEdit()">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="/scripts/profileSettings.js"></script>
+</body>
+</html>

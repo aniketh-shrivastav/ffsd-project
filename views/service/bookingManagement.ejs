@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management</title>
+    <link rel="stylesheet" href="/styles/bookingManagement.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo-brand">
+            <img src="/public/images3/logo2.jpg" alt="Logo" class="logo">
+            <span class="brand">AutoCustomizer</span>
+        </div>
+        <a href="#" class="menu-btn" onclick="toggleSidebar()">☰</a>
+        <div class="nav-links" id="navLinks">
+            <a href="/service/dashboardService">Dashboard</a>
+            <a href="/service/profileSettings">Profile Settings</a>
+            <a href="/service/bookingManagement">Booking Management</a>
+            <a href="/service/customerCommunication">Customer Communication</a>
+            <a href="/service/earnings" class="active">Earnings & Payouts</a>
+            <a href="/service/reviews">Reviews & Ratings</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="sidebar" id="sidebar">
+        <!-- <a href="#" class="close-btn" onclick="toggleSidebar()">&times; Close</a> -->
+        <a href="/service/dashboardService"><i class="fas fa-tachometer-alt"></i> </a>
+        <a href="/service/profileSettings"><i class="fas fa-user-cog"></i> </a>
+        <a href="/service/bookingManagement"><i class="fas fa-calendar-alt"></i> </a>
+        <a href="/service/customerCommunication"><i class="fas fa-comments"></i></a>
+        <a href="/service/earnings" class="active"><i class="fas fa-money-bill-wave"></i> </a>
+        <a href="#reviews"><i class="fas fa-star"></i> </a>
+    </div>
+
+    <div class="order-container">
+        <div class="order-header">
+            <button class="tab active">Open</button>
+            <button class="tab">Confirmed</button>
+            <button class="tab">Ready</button>
+            <button class="tab">Rejected</button>
+        </div>
+
+        <div class="filter-section">
+            <input type="text" id="searchInput" placeholder="Search by Customer ID or Name" class="search-input">
+            <select class="dropdown">
+                <option>Newest Order Sent</option>
+                <option>Oldest Order Sent</option>
+            </select>
+            <button class="filter-btn">Filter</button>
+        </div>
+        <table class="order-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>OrderId</th>
+                    <th>Service</th>
+                    <th>Customer Name</th>
+                    <th>Customer Id</th>
+                    <th>Amount</th>
+                    <th>Order Sent</th>
+                    <th>Order Expected</th>
+                    <th>Staus</th>
+                   
+                </tr>
+            </thead>
+            <tbody>
+                <!-- <tr>
+                    <td><input type="checkbox" class="order-checkbox"></td>
+                    <td>ord1</td>
+                    <td><a href="#">Car wash</a></td>
+                    <td>John</td>
+                    <td>cust1</td>
+                    <td>30.00</td>
+                    <td>12/2/21</td>
+                    <td>14/2/21</td>
+                    <td>Pending</td>
+                </tr> -->
+
+
+                <!-- <tr>
+                    <td><input type="checkbox" class="order-checkbox"></td>
+                    <td>ord2</td>
+                    <td><a href="#">Car wash</a></td>
+                    <td>John</td>
+                    <td>cust2</td>
+                    <td>30.00</td>
+                    <td>12/2/21</td>
+                    <td>14/2/21</td>
+                    <td>Pending</td>
+                </tr>
+
+
+
+                <tr>
+                    <td><input type="checkbox" class="order-checkbox"></td>
+                    <td>ord3</td>
+                    <td><a href="#">Car wash</a></td>
+                    <td>John</td>
+                    <td>cust3</td>
+                    <td>30.00</td>
+                    <td>13/2/21</td>
+                    <td>14/2/21</td>
+                    <td>Pending</td>
+                </tr>
+                 -->
+                
+            </tbody>
+        </table>
+
+        <div class="action-buttons">
+            <button class="confirm-btn">✅ Confirm</button>
+            <button class="reject-btn">❌ Reject</button>
+        </div>
+    </div>
+    <script src="/scripts/bookingManagement.js"></script>
+</body>
+</html>

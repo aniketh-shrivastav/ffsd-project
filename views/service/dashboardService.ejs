@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Provider Dashboard</title>
+    <link rel="stylesheet" href="/styles/dashboardService.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo-brand">
+            <img src="/public/images3/logo2.jpg" alt="Logo" class="logo">
+            <span class="brand">AutoCustomizer</span>
+        </div>
+        <a href="#" class="menu-btn" onclick="toggleSidebar()">☰</a>
+        <div class="nav-links" id="navLinks">
+            <a href="/service/dashboardService">Dashboard</a>
+            <a href="/service/profileSettings">Profile Settings</a>
+            <a href="/service/bookingManagement">Booking Management</a>
+            <a href="/service/customerCommunication">Customer Communication</a>
+            <a href="/service/earnings">Earnings & Payouts</a>
+            <a href="/service/reviews">Reviews & Ratings</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <a href="/service/dashboardService"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="/service/profileSettings"><i class="fas fa-user-cog"></i> Profile</a>
+        <a href="/service/bookingManagement"><i class="fas fa-calendar-alt"></i> Bookings</a>
+        <a href="/service/customerCommunication"><i class="fas fa-comments"></i> Communication</a>
+        <a href="/service/earnings"><i class="fas fa-money-bill-wave"></i> Earnings</a>
+        <a href="/service/reviews"><i class="fas fa-star"></i> Reviews</a>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+           
+            <h2>Welcome ! Here's your daily overview.</h2>
+        </div>
+
+        <!-- Key Metrics Cards -->
+        <div class="cards">
+            <!-- Today's Earnings -->
+            <div class="card">
+                <div class="card-icon">
+                    <i class="fas fa-ruppee-sign"></i>
+                </div>
+                <div class="card-content">
+                    <h2>Today's Earnings</h2>
+                    <p class="amount">₹1,250</p>
+                    <p class="subtext">+15% from yesterday</p>
+                </div>
+            </div>
+
+            <!-- Ongoing Services -->
+            <div class="card">
+                <div class="card-icon">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <div class="card-content">
+                    <h2>Ongoing Services</h2>
+                    <p class="amount">5</p>
+                    <p class="subtext">In progress</p>
+                </div>
+            </div>
+
+            <!-- Completed Services -->
+            <div class="card">
+                <div class="card-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="card-content">
+                    <h2>Completed Services</h2>
+                    <p class="amount">12</p>
+                    <p class="subtext">This week</p>
+                </div>
+            </div>
+
+            <!-- Customer Satisfaction -->
+            <div class="card">
+                <div class="card-icon">
+                    <i class="fas fa-smile"></i>
+                </div>
+                <div class="card-content">
+                    <h2>Customer Satisfaction</h2>
+                    <p class="amount">4.8/5</p>
+                    <p class="subtext">Based on 120 reviews</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts">
+            <!-- Pie Chart -->
+            <div class="chart-card">
+                <h2>Service Distribution</h2>
+                <canvas id="servicePieChart"></canvas>
+            </div>
+
+            <!-- Bar Chart -->
+            <div class="chart-card">
+                <h2>Earnings Overview</h2>
+                <canvas id="earningsBarChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="recent-activity">
+            <h2>Recent Activity</h2>
+            <ul class="activity-list">
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    <span>Completed: Brake Repair for Karthick</span>
+                    <span class="time">2 hours ago</span>
+                </li>
+                <li>
+                    <i class="fas fa-tools"></i>
+                    <span>Started: Oil Change for Suresh</span>
+                    <span class="time">4 hours ago</span>
+                </li>
+                <li>
+                    <i class="fas fa-star"></i>
+                    <span>New Review: 5 stars from Harish</span>
+                    <span class="time">1 day ago</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="/scripts/dashboardService.js"></script>
+</body>
+</html>
