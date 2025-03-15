@@ -42,6 +42,7 @@ router.post("/contactus", (req, res) => {
     
   });
   stmt.finalize();
+  res.redirect('/contactus?submitted=true');
 });
 
 // Admin support view

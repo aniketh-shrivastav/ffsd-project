@@ -38,28 +38,36 @@ router.post("/signup", (req, res) => {
     error = "Please enter a valid email ending in .com";
   } else if (!nameRegex.test(finalName)) {
     error = "Name should not contain numbers or special characters";
-  } else if (
-    [...persistedUsers, ...memoryUsers].some(u => u.email === email)
-  ) {
+  } else if ([...persistedUsers, ...memoryUsers].some(u => u.email === email)) {
     error = "Email already exists";
   }
 
   if (error) {
-    return res.render("signup", { error });
+    // Respond with error for fetch/JS client
+    if (req.headers.accept.includes('application/json')) {
+      return res.status(400).json({ success: false, message: error });
+    } else {
+      return res.render("signup", { error });
+    }
   }
 
   const newUser = {
-    id: Date.now(), // simple unique id
+    id: Date.now(),
     name: finalName,
     email,
     password,
     role
   };
 
-  memoryUsers.push(newUser); // Only add to memory, not JSON
-  console.log("New in-memory user:", newUser);
+  memoryUsers.push(newUser);
+  console.log("✅ New in-memory user:", newUser);
 
-  res.redirect("/login");
+  // Successful signup response
+  if (req.headers.accept.includes('application/json')) {
+    return res.json({ success: true, message: "Signup successful. Redirecting to login..." });
+  } else {
+    return res.redirect("/login");
+  }
 });
 
 // GET Login

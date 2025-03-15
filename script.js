@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let isLoginView = true;
 
-    // Toggle between login and signup views
+    // Toggle login/signup view
     if (toggleAuthButton) {
         toggleAuthButton.addEventListener('click', () => {
             isLoginView = !isLoginView;
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Show the appropriate signup form based on user type selection
+    // Show the appropriate signup form
     userTypeSelect.addEventListener('change', showSelectedForm);
 
     function showSelectedForm() {
@@ -34,9 +34,9 @@ document.addEventListener('DOMContentLoaded', function () {
         signupForms[selectedType]?.classList.remove('hidden');
     }
 
-    showSelectedForm(); // Show initial form
+    showSelectedForm(); // Show initial on page load
 
-    // Handle login form submission
+    // Handle login
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -51,16 +51,16 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 const response = await fetch('/login', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
 
                 const data = await response.json();
 
-                if (data.success) {
+                if (response.ok && data.success) {
                     window.location.href = '/users';
                 } else {
-                    alert(data.message || 'Invalid credentials');
+                    alert(data.message || 'Invalid credentials.');
                 }
             } catch (error) {
                 console.error('Login error:', error);
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Handle signup form submission
+    // Handle signup
     document.querySelectorAll('.signup-form').forEach(form => {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
             }
 
-            // Validation
+            // Basic frontend validation
             if (Object.values(userData).some(value => !value)) {
                 alert('Please fill in all required fields.');
                 return;
@@ -119,15 +119,20 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 const response = await fetch('/signup', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
                     body: JSON.stringify(userData)
                 });
 
                 const result = await response.json();
-                alert(result.message);
 
-                if (result.success) {
-                    toggleAuthButton?.click(); // Switch to login view
+                if (response.ok && result.success) {
+                    alert(result.message || 'Signup successful!');
+                    window.location.href = '/login';
+                } else {
+                    alert(result.message || 'Signup failed. Please try again.');
                 }
             } catch (error) {
                 console.error('Signup error:', error);

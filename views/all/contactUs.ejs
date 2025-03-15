@@ -74,6 +74,19 @@
         }
     });
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('submitted') === 'true') {
+            alert("Thank you! Your message has been submitted.");
+        }
+
+        // Optional: remove query from URL after alert
+        if (window.history.replaceState) {
+            const cleanUrl = window.location.origin + window.location.pathname;
+            window.history.replaceState(null, null, cleanUrl);
+        }
+    });
     </script>    
 </body>
 </html>
