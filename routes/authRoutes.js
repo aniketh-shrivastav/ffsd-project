@@ -108,6 +108,10 @@ router.get("/contactus", (req, res) =>{
 router.get("/feedback", (req, res) =>{
   res.render("all/feedback", {user: req.session.user});
 });
+router.get("/faq", (req, res) => {
+  console.log("✅ /faq route hit");
+  res.render("all/faq", { user: req.session.user });
+});
 
 // Logout
 router.get("/logout", (req, res) => {
