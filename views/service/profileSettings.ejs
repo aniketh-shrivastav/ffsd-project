@@ -8,22 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="logo-brand">
-            <img src="/public/images3/logo2.jpg" alt="Logo" class="logo">
-            <span class="brand">AutoCustomizer</span>
-        </div>
-        <!-- <a href="#" class="menu-btn" onclick="toggleSidebar()">☰</a> -->
-        <div class="nav-links" id="navLinks">
-            <a href="/service/dashboardService">Dashboard</a>
-            <a href="/service/profileSettings">Profile Settings</a>
-            <a href="/service/bookingManagement">Booking Management</a>
-            <a href="/service/customerCommunication">Customer Communication</a>
-            <a href="/service/earnings">Earnings & Payouts</a>
-            <a href="/service/reviews">Reviews & Ratings</a>
-            <a href="/logout">Logout</a>
-        </div>
-    </nav>
+    <%- include("../partials/serviceHeaders") %>
 
     <div class="sidebar" id="sidebar">
         <!-- <a href="#" class="close-btn" onclick="toggleSidebar()">&times; Close</a> -->
