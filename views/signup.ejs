@@ -31,7 +31,6 @@
                     <option value="customer">Customer</option>
                     <option value="seller">Seller</option>
                     <option value="service-provider">Service Provider</option>
-                    <option value="manager">Manager</option>
                 </select>
 
                 <!-- Customer Signup -->
@@ -58,7 +57,8 @@
                 <form id="serviceProviderSignup" action="/signup" method="POST" class="auth-form signup-form hidden">
                     <input type="hidden" name="role" value="service-provider">
                     <div class="form-group"><input type="text" name="workshopName" placeholder="Workshop Name" required></div>
-                    <div class="form-group"><input type="email" name="email" placeholder="Business Email" required></div>
+                    <div class="form-group"><input type="email" name="email" placeholder="Workshop Email" required></div>
+                    <div class="form-group"><input type="tel" name="phone" placeholder="Workshop Phone" required></div>
                     <div class="form-group"><input type="password" name="password" placeholder="Password" required></div>
                     <button type="submit" class="submit-btn">Register as Service Provider</button>
                 </form>

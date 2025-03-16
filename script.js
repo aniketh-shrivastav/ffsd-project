@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     ...userData,
                     workshopName: formData.get('workshopName'),
                     email: formData.get('email'),
+                    phone: formData.get('phone'),
                     password: formData.get('password')
                 };
             } else if (userType === 'manager') {
@@ -111,10 +112,31 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // Basic frontend validation
-            if (Object.values(userData).some(value => !value)) {
-                alert('Please fill in all required fields.');
-                return;
-            }
+            const hasEmptyField = Object.values(userData).some(value => !value || value.trim() === '');
+if (hasEmptyField) {
+    alert('Please fill in all required fields (no empty spaces).');
+    return;
+}
+
+if (userData.name && !/^[A-Za-z\s.-]+$/.test(userData.name.trim())) {
+    alert("Name should not contain numbers or special characters.");
+    return;
+}
+
+if (userData.businessName && !/^[A-Za-z\s.-]+$/.test(userData.businessName.trim())) {
+    alert("Business name should not contain numbers or special characters.");
+    return;
+}
+
+if (userData.workshopName && !/^[A-Za-z\s.-]+$/.test(userData.workshopName.trim())) {
+    alert("Workshop name should not contain numbers or special characters.");
+    return;
+}
+
+if (userData.phone && !/^\d{10}$/.test(userData.phone.trim())) {
+    alert("Phone number must be 10 digits.");
+    return;
+}
 
             try {
                 const response = await fetch('/signup', {
