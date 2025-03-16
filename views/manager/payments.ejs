@@ -13,9 +13,6 @@
         <h2>Manager's Panel</h2>
     </div>
     <%- include("../partials/managerHeader") %>
-    </ul>
-    </ul>
-    </nav>
   </div>
 
   <!-- Main Content -->
@@ -34,19 +31,44 @@
         </tr>
       </thead>
       <tbody>
-        <% payments.forEach(payment => { %>
+        <% payments.forEach(payment => { 
+            const encodedCustomer = encodeURIComponent(payment.customer);
+            const encodedItem = encodeURIComponent(payment.item);
+        %>
           <tr>
             <td><%= payment.id %></td>
             <td><%= payment.customer %></td>
             <td><%= payment.item %></td>
             <td>$<%= payment.amount %></td>
             <td>$<%= (payment.amount * 0.2).toFixed(2) %></td>
-            <td><button class="btn btn-view">View</button></td>
+            <td>
+              <button class="btn btn-view"
+                onclick="showPaymentDetails('<%= payment.id %>', '<%= encodedCustomer %>', '<%= encodedItem %>', '<%= payment.amount %>)')">
+                View
+              </button>
+            </td>
           </tr>
         <% }) %>
       </tbody>
     </table>
   </div>
+
+  <script>
+    function showPaymentDetails(id, encodedCustomer, encodedItem, amount) {
+      const customer = decodeURIComponent(encodedCustomer);
+      const item = decodeURIComponent(encodedItem);
+      const profit = (amount * 0.2).toFixed(2);
+
+      alert(
+        `Payment Details:\n` +
+        `Order ID: ${id}\n` +
+        `Customer: ${customer}\n` +
+        `Item/Service: ${item}\n` +
+        `Amount: $${amount}\n` +
+        `Profit (20%): $${profit}`
+      );
+    }
+  </script>
 
 </body>
 </html>

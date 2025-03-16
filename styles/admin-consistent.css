@@ -1,14 +1,14 @@
 /* Root Theme Variables */
 :root {
-  --primary-color: #2563eb;
-  --secondary-color: #1e40af;
+  --primary-color: #000000; /* Navbar color - Black */
+  --secondary-color: #333333;
   --success-color: #2ecc71;
   --danger-color: #e74c3c;
-  --background-color: #000000;
+  --background-color: #ffffff; /* Body background - White */
   --card-background: #ffffff;
-  --text-primary: #ffffff;
+  --text-primary: #000000; /* Text color - Black */
   --text-secondary: #6b7280;
-  --chart-box-bg: rgba(255, 255, 255, 0.1);
+  --chart-box-bg: rgba(0, 0, 0, 0.05); /* Light chart background */
 }
 
 /* Reset */
@@ -82,7 +82,7 @@ body {
 
 /* Main Content */
 .main-content {
-  margin-top: 80px; /* space for navbar */
+  margin-top: 80px;
   padding: 2rem;
 }
 
@@ -95,7 +95,7 @@ body {
   background: var(--card-background);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1);
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.05);
 }
 
 .user-table th,
@@ -177,7 +177,6 @@ body {
   width: 250px;
 }
 
-
 /* payment */
 .status {
   display: inline-block;
@@ -211,7 +210,7 @@ body {
 }
 
 .stat-card {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #f9f9f9;
   border-radius: 10px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -257,10 +256,10 @@ body {
 }
 
 .chart-wrapper {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--chart-box-bg);
   border-radius: 10px;
   padding: 1.5rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .chart-wrapper h2 {
@@ -270,16 +269,16 @@ body {
 }
 
 .chart-box {
-  background-color: var(--chart-box-bg);
-  border-radius: 8px;
-  padding: 1rem;
-  height: 300px;
   position: relative;
+  width: 100%;
+  max-width: 400px;
+  height: 400px;
+  margin: auto;
 }
 
 /* Recent Activity */
 .recent-activity {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #f9f9f9;
   border-radius: 10px;
   padding: 1.5rem;
   margin-top: 2rem;
@@ -299,7 +298,7 @@ body {
 .recent-activity table td {
   padding: 0.75rem;
   text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .recent-activity table th {
