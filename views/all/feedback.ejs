@@ -21,16 +21,7 @@
     </style>
 </head>
 <body>
-    <nav>
-        <div class="logo">AutoCustomizer</div>
-        <ul class="nav-links">
-            <li><a href="/">Home</a></li>
-            <li><a href="/login">Login</a></li>
-            <li><a href="/signup">Signup</a></li>
-            <li><a href="/contactus">Contact Us</a></li>
-            <li><a href="/Feedback">Feedback</a></li>
-        </ul>
-    </nav>
+    <%- include("../partials/allHeaders") %>
     <div class="container">
         <div class="row">
             <div class="col-12 col-md-8 col-lg-6 p-3 m-md-auto mt-5 mt-md-4 mt-lg-5 shadow review-container">
@@ -38,8 +29,8 @@
                     <h2>Feedback</h2>
                 </div>
                 <form>
-                    <label for="name">Name (Optional):</label>
-                    <input type="text" id="name" name="name">
+                    <label for="name">Name </label>
+                    <input type="text" id="name" name="name" required>
                     
                     <label>Rating:</label>
                     <div class="stars">
@@ -63,5 +54,32 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector("form");
+            const nameInput = document.getElementById("name");
+    
+            form.addEventListener("submit", function (e) {
+                const nameRegex = /^[A-Za-z\s.-]+$/;
+    
+                if (!nameRegex.test(nameInput.value.trim())) {
+                    alert("Name should not contain numbers or special characters.");
+                    e.preventDefault(); // Prevent form submission
+                    return;
+                }
+    
+                // Check if a rating is selected
+                const ratingChecked = document.querySelector("input[name='rating']:checked");
+                if (!ratingChecked) {
+                    alert("Please select a rating.");
+                    e.preventDefault();
+                    return;
+                }
+    
+                // All validations passed
+                alert("✅ Feedback submitted successfully!");
+            });
+        });
+    </script>
 </body>
 </html>
