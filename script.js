@@ -112,11 +112,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // Basic frontend validation
-            const hasEmptyField = Object.values(userData).some(value => !value || value.trim() === '');
-if (hasEmptyField) {
-    alert('Please fill in all required fields (no empty spaces).');
-    return;
-}
+            const hasEmptyField = Object.entries(userData).some(([key, value]) => {
+                // Skip role since it's always selected
+                if (key === 'role') return false;
+                return !value || value.trim() === '';
+            });
 
 if (userData.name && !/^[A-Za-z\s.-]+$/.test(userData.name.trim())) {
     alert("Name should not contain numbers or special characters.");

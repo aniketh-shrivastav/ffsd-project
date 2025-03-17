@@ -1,23 +1,21 @@
 const express = require("express");
 const router = express.Router();
-const sqlite3 = require("sqlite3").verbose();
+const fs = require("fs");
 const path = require("path");
 
-// Create in-memory SQLite DB
-const db = new sqlite3.Database(":memory:");
+const dataDir = path.join(__dirname, "../data");
+const usersFile = path.join(dataDir, "users.json");
 
-// Create users table
-db.serialize(() => {
-  db.run(`
-    CREATE TABLE users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL UNIQUE,
-      password TEXT NOT NULL,
-      role TEXT NOT NULL
-    )
-  `);
-});
+let memoryUsers = []; // In-memory store for new users (removed on restart)
+
+// Load persistent users from JSON file
+const loadUsers = () => {
+  try {
+    return JSON.parse(fs.readFileSync(usersFile, "utf8"));
+  } catch {
+    return [];
+  }
+};
 
 // GET Signup
 router.get("/signup", (req, res) => {
@@ -26,9 +24,10 @@ router.get("/signup", (req, res) => {
 
 // POST Signup
 router.post("/signup", (req, res) => {
+  const persistedUsers = loadUsers();
   const { name, email, password, role, businessName, workshopName } = req.body;
-  const finalName = name || businessName || workshopName;
 
+  const finalName = name || businessName || workshopName;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const nameRegex = /^[A-Za-z\s.-]+$/;
 
@@ -39,33 +38,36 @@ router.post("/signup", (req, res) => {
     error = "Please enter a valid email ending in .com";
   } else if (!nameRegex.test(finalName)) {
     error = "Name should not contain numbers or special characters";
+  } else if ([...persistedUsers, ...memoryUsers].some(u => u.email === email)) {
+    error = "Email already exists";
   }
 
   if (error) {
-    if (req.headers.accept.includes("application/json")) {
+    // Respond with error for fetch/JS client
+    if (req.headers.accept.includes('application/json')) {
       return res.status(400).json({ success: false, message: error });
     } else {
       return res.render("signup", { error });
     }
   }
 
-  const query = `INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)`;
-  db.run(query, [finalName, email, password, role], function (err) {
-    if (err) {
-      if (err.message.includes("UNIQUE")) {
-        return res.status(400).json({ success: false, message: "Email already exists" });
-      }
-      return res.status(500).json({ success: false, message: "Error creating user" });
-    }
+  const newUser = {
+    id: Date.now(),
+    name: finalName,
+    email,
+    password,
+    role
+  };
 
-    console.log("✅ New user added to SQLite:", { id: this.lastID, name: finalName, email, role });
+  memoryUsers.push(newUser);
+  console.log("✅ New in-memory user:", newUser);
 
-    if (req.headers.accept.includes("application/json")) {
-      return res.json({ success: true, message: "Signup successful. Redirecting to login..." });
-    } else {
-      return res.redirect("/login");
-    }
-  });
+  // Successful signup response
+  if (req.headers.accept.includes('application/json')) {
+    return res.json({ success: true, message: "Signup successful. Redirecting to login..." });
+  } else {
+    return res.redirect("/login");
+  }
 });
 
 // GET Login
@@ -76,31 +78,35 @@ router.get("/login", (req, res) => {
 // POST Login
 router.post("/login", (req, res) => {
   const { email, password } = req.body;
+  const persistedUsers = loadUsers();
 
-  db.get("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], (err, user) => {
-    if (err) return res.status(500).json({ message: "Server error" });
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+  // Merge both sources
+  const allUsers = [...persistedUsers, ...memoryUsers];
+  const user = allUsers.find(u => u.email === email && u.password === password);
 
-    req.session.user = { id: user.id, name: user.name, role: user.role };
+  if (!user) {
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
 
-    if (user.role === "manager") res.redirect("/manager/dashboard");
-    else if (user.role === "customer") res.redirect("/customer/index");
-    else if (user.role === "seller") res.redirect("/seller/index");
-    else if (user.role === "service-provider") res.redirect("/service/dashboardService");
-    else res.status(403).send("Unknown role");
-  });
+  req.session.user = { id: user.id, name: user.name, role: user.role };
+
+  if (user.role === "manager") res.redirect("/manager/dashboard");
+  else if (user.role === "customer") res.redirect("/customer/index");
+  else if (user.role === "seller") res.redirect("/Seller/dashboard");
+  else if (user.role === "service-provider") res.redirect("/service/dashboardService");
+  else res.status(403).send("Unknown role");
 });
 
-// Home
+// Home route
 router.get("/", (req, res) => {
   res.render("all/index", { user: req.session.user });
 });
 
-router.get("/contactus", (req, res) => {
-  res.render("all/contactus", { user: req.session.user });
+router.get("/contactus", (req, res) =>{
+  res.render("all/contactus", {user: req.session.user});
 });
-router.get("/feedback", (req, res) => {
-  res.render("all/feedback", { user: req.session.user });
+router.get("/feedback", (req, res) =>{
+  res.render("all/feedback", {user: req.session.user});
 });
 router.get("/faq", (req, res) => {
   res.render("all/faq", { user: req.session.user });

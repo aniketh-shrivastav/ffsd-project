@@ -28,6 +28,7 @@ const managerRoutes = require("./routes/managerRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const serviceProviderRoutes = require("./routes/serviceProviderRoutes");
 const { router: contactRoutes } = require("./routes/contactRoutes");
+const sellerRoutes = require("./routes/sellerRoutes");
 
 
 app.use("/", authRoutes);
@@ -35,6 +36,8 @@ app.use("/manager", managerRoutes);
 app.use("/customer", customerRoutes);
 app.use("/service", serviceProviderRoutes);
 app.use("/", contactRoutes);
+app.use("/seller", sellerRoutes);
+
 
 // Start Server
 app.listen(3000, () => {

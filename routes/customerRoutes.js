@@ -20,10 +20,10 @@ const customerOnly = [isAuthenticated, isCustomer];
 // Load products with error handling
 let productsData = { products: [] };
 try {
-  const fileContent = fs.readFileSync(path.join(__dirname, '../data/products.json'), 'utf8');
+  const fileContent = fs.readFileSync(path.join(__dirname, '../data/product.json'), 'utf8');
   productsData = JSON.parse(fileContent);
 } catch (err) {
-  console.error("Failed to load products.json:", err);
+  console.error("Failed to load product.json:", err);
 }
 
 // Routes
