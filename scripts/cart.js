@@ -103,7 +103,7 @@ document.getElementById("book-service").addEventListener("click", function () {
   let selectedPaymentMethod = localStorage.getItem("selectedPaymentMethod") || "Not Selected";
   localStorage.setItem("cartBackup", JSON.stringify(cart));
   localStorage.setItem("paymentBackup", selectedPaymentMethod);
-  window.location.href = "service.html";
+  window.location.href = "service";
 });
 document.getElementById("place-order").addEventListener("click", function () {
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
