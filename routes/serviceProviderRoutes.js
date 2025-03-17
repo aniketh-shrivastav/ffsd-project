@@ -41,5 +41,9 @@ router.get("/earnings", serviceOnly, (req, res) => {
 router.get("/customerCommunication", serviceOnly, (req, res) => {
   res.render("service/customerCommunication");
 });
+router.get("/reviews", serviceOnly, (req, res) => {
+  res.render("service/reviews");
+});
+
 
 module.exports = router;
