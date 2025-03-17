@@ -137,6 +137,10 @@ if (userData.phone && !/^\d{10}$/.test(userData.phone.trim())) {
     alert("Phone number must be 10 digits.");
     return;
 }
+if (userData.email && /[A-Z]/.test(userData.email)) {
+    alert("Email must not contain uppercase letters.");
+    return;
+}
 
             try {
                 const response = await fetch('/signup', {

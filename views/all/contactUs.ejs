@@ -65,11 +65,17 @@
         return;
     }
 
-        if (!emailRegex.test(emailInput.value)) {
-            alert("Please enter a valid email in the format: example@domain.com");
-            event.preventDefault();
-            return;
-        }
+    if (!emailRegex.test(emailInput.value)) {
+    alert("Please enter a valid email in the format: example@domain.com");
+    event.preventDefault();
+    return;
+}
+
+if (/[A-Z]/.test(emailInput.value)) {
+    alert("Email must not contain uppercase letters.");
+    event.preventDefault();
+    return;
+}
     });
 });
 
