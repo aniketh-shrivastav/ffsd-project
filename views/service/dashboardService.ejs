@@ -11,7 +11,7 @@
 <body>
     <%- include("../partials/serviceHeaders") %>
 
-    <!-- Sidebar -->
+   
     <div class="sidebar" id="sidebar">
         <a href="/service/dashboardService"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
         <a href="/service/profileSettings"><i class="fas fa-user-cog"></i> Profile</a>
@@ -21,17 +21,16 @@
         <a href="/service/reviews"><i class="fas fa-star"></i> Reviews</a>
     </div>
 
-    <!-- Dashboard Content -->
+   
     <div class="dashboard-container">
-        <!-- Header -->
+        
         <div class="dashboard-header">
            
             <h2>Welcome ! Here's your daily overview.</h2>
         </div>
 
-        <!-- Key Metrics Cards -->
+        
         <div class="cards">
-            <!-- Today's Earnings -->
             <div class="card">
                 <div class="card-icon">
                     <i class="fas fa-ruppee-sign"></i>
@@ -43,7 +42,7 @@
                 </div>
             </div>
 
-            <!-- Ongoing Services -->
+           
             <div class="card">
                 <div class="card-icon">
                     <i class="fas fa-tools"></i>
@@ -55,7 +54,7 @@
                 </div>
             </div>
 
-            <!-- Completed Services -->
+           
             <div class="card">
                 <div class="card-icon">
                     <i class="fas fa-check-circle"></i>
@@ -67,7 +66,7 @@
                 </div>
             </div>
 
-            <!-- Customer Satisfaction -->
+           
             <div class="card">
                 <div class="card-icon">
                     <i class="fas fa-smile"></i>
@@ -80,22 +79,22 @@
             </div>
         </div>
 
-        <!-- Charts Section -->
+        
         <div class="charts">
-            <!-- Pie Chart -->
+           
             <div class="chart-card">
                 <h2>Service Distribution</h2>
                 <canvas id="servicePieChart"></canvas>
             </div>
 
-            <!-- Bar Chart -->
+          
             <div class="chart-card">
                 <h2>Earnings Overview</h2>
                 <canvas id="earningsBarChart"></canvas>
             </div>
         </div>
 
-        <!-- Recent Activity -->
+       
         <div class="recent-activity">
             <h2>Recent Activity</h2>
             <ul class="activity-list">
@@ -118,6 +117,8 @@
         </div>
     </div>
 
+
+ 
     <script src="/scripts/dashboardService.js"></script>
 </body>
 </html>

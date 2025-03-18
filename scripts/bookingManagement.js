@@ -6,11 +6,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const filterBtn = document.querySelector('.filter-btn');
     const tabs = document.querySelectorAll('.tab');
     const actionButtons = document.querySelector('.action-buttons');
-    const searchInput = document.getElementById('searchInput'); // Search input field
-    const confirmBtn = document.querySelector('.confirm-btn'); // Confirm button
-    const rejectBtn = document.querySelector('.reject-btn'); // Reject button
+    const searchInput = document.getElementById('searchInput'); 
+    const confirmBtn = document.querySelector('.confirm-btn'); 
+    const rejectBtn = document.querySelector('.reject-btn'); 
 
-    // Sample order data
+    
     let orders = [
         { id: 'ord1', service: 'Car wash', customerName: 'Gani', customerId: 'cust1', amount: '30.00', orderSent: '12/2/21', orderExpected: '14/2/21', status: 'Pending' },
         { id: 'ord2', service: 'Oil change', customerName: 'Sudhan', customerId: 'cust2', amount: '50.00', orderSent: '13/2/21', orderExpected: '15/2/21', status: 'Confirmed' },
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
         { id: 'ord10', service: 'AC Repair', customerName: 'Abhishek', customerId: 'cust10', amount: '120.00', orderSent: '23/2/21', orderExpected: '25/2/21', status: 'Confirmed' },
     ];
 
-    // Render orders in the table
+    
     function renderOrders(filteredOrders) {
         orderTableBody.innerHTML = ''; // Clear existing rows
         filteredOrders.forEach(order => {
@@ -44,17 +44,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Filter orders by search term (Customer ID or Name)
+    
     function filterOrdersBySearch(orders, searchTerm) {
-        if (!searchTerm) return orders; // Return all orders if no search term
+        if (!searchTerm) return orders; 
         searchTerm = searchTerm.toLowerCase();
         return orders.filter(order =>
-            order.customerId.toLowerCase().includes(searchTerm) || // Match Customer ID
-            order.customerName.toLowerCase().includes(searchTerm)  // Match Customer Name
+            order.customerId.toLowerCase().includes(searchTerm) || 
+            order.customerName.toLowerCase().includes(searchTerm) 
         );
     }
 
-    // Filter orders by status
+    
     function filterOrdersByStatus(orders, status) {
         if (status === 'Open') {
             return orders.filter(order => order.status === 'Pending');
@@ -65,10 +65,10 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (status === 'Rejected') {
             return orders.filter(order => order.status === 'Rejected');
         }
-        return orders; // Default to all orders
+        return orders; 
     }
 
-    // Sort orders by date
+    
     function sortOrders(orders, sortOrder) {
         return orders.sort((a, b) => {
             const dateA = new Date(
@@ -88,9 +88,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Show/hide action buttons based on the active tab
     function toggleActionButtons(activeTab) {
         if (activeTab === 'Open') {
-            actionButtons.style.display = 'flex'; // Show buttons
+            actionButtons.style.display = 'flex'; 
         } else {
-            actionButtons.style.display = 'none'; // Hide buttons
+            actionButtons.style.display = 'none'; 
         }
     }
 
@@ -98,20 +98,20 @@ document.addEventListener('DOMContentLoaded', function () {
     function initializeTable() {
         const activeTab = document.querySelector('.tab.active').textContent.trim();
         const sortOrder = filterDropdown.value;
-        const searchTerm = searchInput.value.trim(); // Get search term
+        const searchTerm = searchInput.value.trim(); 
 
         let filteredOrders = filterOrdersByStatus(orders, activeTab);
-        filteredOrders = filterOrdersBySearch(filteredOrders, searchTerm); // Apply search filter
+        filteredOrders = filterOrdersBySearch(filteredOrders, searchTerm);
         filteredOrders = sortOrders(filteredOrders, sortOrder);
 
         renderOrders(filteredOrders);
         toggleActionButtons(activeTab);
     }
 
-    // Initial render of all orders
+    
     initializeTable();
 
-    // Tab switching functionality
+    
     tabs.forEach(tab => {
         tab.addEventListener('click', function () {
             tabs.forEach(t => t.classList.remove('active'));
@@ -120,39 +120,39 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Filter button functionality
+   
     filterBtn.addEventListener('click', function () {
         initializeTable();
     });
 
-    // Search input functionality
+    
     searchInput.addEventListener('input', function () {
-        initializeTable(); // Re-render table on every keystroke
+        initializeTable(); 
     });
 
-    // Confirm button functionality
+  
     confirmBtn.addEventListener('click', function () {
         const checkedOrders = document.querySelectorAll('.order-checkbox:checked');
         checkedOrders.forEach(checkbox => {
             const orderId = checkbox.getAttribute('data-order-id');
             const order = orders.find(order => order.id === orderId);
             if (order) {
-                order.status = 'Confirmed'; // Update status to Confirmed
+                order.status = 'Confirmed'; 
             }
         });
-        initializeTable(); // Re-render the table
+        initializeTable(); 
     });
 
-    // Reject button functionality
+   
     rejectBtn.addEventListener('click', function () {
         const checkedOrders = document.querySelectorAll('.order-checkbox:checked');
         checkedOrders.forEach(checkbox => {
             const orderId = checkbox.getAttribute('data-order-id');
             const order = orders.find(order => order.id === orderId);
             if (order) {
-                order.status = 'Rejected'; // Update status to Rejected
+                order.status = 'Rejected'; 
             }
         });
-        initializeTable(); // Re-render the table
+        initializeTable(); 
     });
 });

@@ -1,18 +1,18 @@
-// Toggle Sidebar
+
 function toggleSidebar() {
     const sidebar = document.getElementById("sidebar");
     sidebar.classList.toggle("active");
 }
 
-// Toggle Navbar Links on Mobile
+
 function toggleNavLinks() {
     const navLinks = document.getElementById("navLinks");
     navLinks.classList.toggle("active");
 }
 
-// Initialize Charts
+
 document.addEventListener("DOMContentLoaded", function () {
-    // Pie Chart 
+    
     const pieCtx = document.getElementById('servicePieChart').getContext('2d');
     const servicePieChart = new Chart(pieCtx, {
         type: 'pie',
@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
             labels: ['Car Wash', 'Oil Change', 'Brake Repair', 'Tire Rotation', 'AC Repair'],
             datasets: [{
                 label: 'Service Distribution',
-                data: [30, 25, 20, 15, 10], // Example data
+                data: [30, 25, 20, 15, 10], 
                 backgroundColor: [
                     '#1abc9c',
                     '#3498db',
@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Bar Chart for Current Month (Weekly Basis)
+    
     const barCtx = document.getElementById('earningsBarChart').getContext('2d');
     const earningsBarChart = new Chart(barCtx, {
         type: 'bar',
@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 x: {
                     title: {
                         display: true,
-                        text: 'Weeks of the Month'
+                        text: 'Weeks '
                     }
                 }
             },
