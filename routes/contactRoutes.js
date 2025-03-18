@@ -53,13 +53,6 @@ router.get("/manager/support", ManagersOnly, (req, res) => {
   });
 });
 
-// Mark as responded (delete entry)
-router.post("/manager/support/respond/:id", ManagersOnly, (req, res) => {
-  db.run("DELETE FROM contactus WHERE id = ?", [req.params.id], function (err) {
-    if (err) return res.status(500).send("Failed to delete ticket");
-    res.redirect("/manager/support");
-  });
-});
 
 
 

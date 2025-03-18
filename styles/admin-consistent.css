@@ -326,3 +326,66 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+
+
+
+
+/* Fix chart and table backgrounds */
+.chart-wrapper, .recent-activity {
+  background-color: #1f2937; /* dark gray */
+  color: #fff;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  margin-bottom: 1.5rem;
+}
+
+/* Chart headings */
+.chart-wrapper h2,
+.recent-activity h2 {
+  color: #f9fafb; /* near white */
+  margin-bottom: 1rem;
+}
+
+/* Table Styling for Recent Activity */
+.recent-activity table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.recent-activity th,
+.recent-activity td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #374151; /* subtle divider */
+  color: #e5e7eb;
+}
+
+.recent-activity th {
+  background-color: #111827;
+  color: #9ca3af;
+  text-align: left;
+}
+
+.recent-activity tr:hover {
+  background-color: #374151;
+}
+
+/* Stats boxes */
+.stat-card {
+  background-color: #f9fafb;
+  color: #1f2937;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.stat-card .number {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.trend.up {
+  color: #10b981; /* green */
+}
