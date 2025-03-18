@@ -24,7 +24,7 @@ db.serialize(() => {
 const dataDir = path.join(__dirname, "../data");
 const usersFile = path.join(dataDir, "users.json");
 
-let memoryUsers = [];
+
 
 // Load users from JSON
 const loadUsers = () => {
@@ -60,7 +60,7 @@ router.post("/signup", (req, res) => {
     error = "Please enter a valid email ending in .com";
   } else if (!nameRegex.test(finalName)) {
     error = "Name should not contain numbers or special characters";
-  } else if ([...persistedUsers, ...memoryUsers].some(u => u.email === email)) {
+  } else if ([...persistedUsers].some(u => u.email === email)) {
     error = "Email already exists";
   }
 
@@ -80,7 +80,7 @@ router.post("/signup", (req, res) => {
     role
   };
 
-  memoryUsers.push(newUser);
+  
 
   db.run(`
     INSERT INTO users (id, name, email, password, role)
@@ -120,10 +120,10 @@ router.post("/login", (req, res) => {
       return res.status(500).send("Internal error");
     }
 
-    const memoryUser = memoryUsers.find(u => u.email === email && u.password === password);
+    
     const jsonUser = persistedUsers.find(u => u.email === email && u.password === password);
 
-    const user = sqliteUser || memoryUser || jsonUser;
+    const user = sqliteUser || jsonUser;
 
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });

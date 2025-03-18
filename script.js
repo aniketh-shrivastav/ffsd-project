@@ -126,20 +126,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 return !value || value.trim() === '';
             });
 
-if (userData.name && !/^[A-Za-z\s.-]+$/.test(userData.name.trim())) {
-    alert("Name should not contain numbers or special characters.");
-    return;
-}
-
-if (userData.businessName && !/^[A-Za-z\s.-]+$/.test(userData.businessName.trim())) {
-    alert("Business name should not contain numbers or special characters.");
-    return;
-}
-
-if (userData.workshopName && !/^[A-Za-z\s.-]+$/.test(userData.workshopName.trim())) {
-    alert("Workshop name should not contain numbers or special characters.");
-    return;
-}
+            if (userData.name && (/^\s/.test(userData.name) || !/^[A-Za-z\s.-]+$/.test(userData.name.trim()))) {
+                alert("Name should not start with spaces or contain numbers/special characters.");
+                return;
+            }
+            
+            if (userData.businessName && (/^\s/.test(userData.businessName) || !/^[A-Za-z\s.-]+$/.test(userData.businessName.trim()))) {
+                alert("Business name should not start with spaces or contain numbers/special characters.");
+                return;
+            }
+            
+            if (userData.workshopName && (/^\s/.test(userData.workshopName) || !/^[A-Za-z\s.-]+$/.test(userData.workshopName.trim()))) {
+                alert("Workshop name should not start with spaces or contain numbers/special characters.");
+                return;
+            }
 
 if (userData.phone && !/^\d{10}$/.test(userData.phone.trim())) {
     alert("Phone number must be 10 digits.");
