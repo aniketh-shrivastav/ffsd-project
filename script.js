@@ -76,6 +76,14 @@ document.addEventListener('DOMContentLoaded', function () {
             const formData = new FormData(form);
             const userType = userTypeSelect.value;
 
+            const password = formData.get('password');
+       const confirmPassword = formData.get('confirmPassword');
+
+   if (password !== confirmPassword) {
+    alert("Passwords do not match.");
+    return;
+   }
+
             let userData = { role: userType };
 
             if (userType === 'customer') {

@@ -32,7 +32,11 @@
                       <a href="/login" class="btn">Browse Products</a>
                     <% } %>
                   
-                <a href="/login" class="btn">Book a Service</a>
+                    <% if (user) { %>
+                        <a href="/customer/booking" class="btn">Book a Service</a>
+                      <% } else { %>
+                        <a href="/login" class="btn">Book a Service</a>
+                      <% } %>
                 <a href="/signup" class="btn seller-btn">Sell Products</a>
                 <a href="/signup" class="btn provider-btn">Offer Services</a>
             </div>
