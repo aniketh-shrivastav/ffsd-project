@@ -264,20 +264,15 @@ footer p {
                 <% payoutData.transactions.forEach(transaction => { %>
                     <tr>
                         <td><%= transaction.date %></td>
-                        <td>$<%= transaction.amount %></td>
+                        <td>₹<%= transaction.amount %></td>
                         <td><%= transaction.status %></td>
                     </tr>
                 <% }) %>                
             </table>
         </div>
 
-<<<<<<< HEAD
-        <form method="POST" action="/request-payout">
+        <form method="POST" action="/Seller/request-payout">
             <label for="amount">Amount to Withdraw (₹)</label>
-=======
-        <form action="/Seller/request-payout" method="POST">
-            <label for="amount">Amount to Withdraw ($)</label>
->>>>>>> 5d66a01498831c237a3c782bff8e567106c3c971
             <input type="number" id="amount" name="amount" min="1" max="<%= payoutData.availableBalance %>" required>
             <button type="submit">Request Payout</button>
         </form>
