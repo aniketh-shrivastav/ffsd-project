@@ -2,24 +2,8 @@ const express = require("express");
 const router = express.Router();
 const fs = require("fs");
 const path = require("path");
-const sqlite3 = require("sqlite3").verbose();
+const db = require("../db"); // instead of creating a new sqlite3.Database
 
-// ─────────────────────────────────────────────
-// SQLite Setup
-// ─────────────────────────────────────────────
-const db = new sqlite3.Database(":memory:");
-
-db.serialize(() => {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      role TEXT NOT NULL
-    )
-  `);
-});
 
 const dataDir = path.join(__dirname, "../data");
 const usersFile = path.join(dataDir, "users.json");

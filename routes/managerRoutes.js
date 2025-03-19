@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const path = require("path");
 const fs = require("fs");
-
+const db = require("../db");
 // Helper to load users
 const usersFile = path.join(__dirname, "../data/users.json");
 const loadUsers = () => {
@@ -65,7 +65,33 @@ router.get("/services", isAuthenticated, isManager, (req, res) => {
 });
 
 router.get("/users", isAuthenticated, isManager, (req, res) => {
-  res.render("manager/users", { users: loadUsers() });
+  const jsonUsers = loadUsers(); // still load from users.json
+
+  // Get users from database
+  db.all("SELECT id, name, role FROM users", [], (err, dbUsers) => {
+    if (err) {
+      console.error("Failed to fetch users from DB:", err);
+      return res.status(500).send("Database error");
+    }
+
+    // Mark where each user came from (optional)
+    const formattedJSON = jsonUsers.map(user => ({
+      ...user,
+      status: "Active",
+      joined: "2024-01-15"
+    }));
+
+    const formattedDB = dbUsers.map(user => ({
+      ...user,
+      status: "Active",
+      joined: "2024-01-15"
+    }));
+
+    const combinedUsers = [...formattedJSON, ...formattedDB];
+
+    // Render the view with both
+    res.render("manager/users", { users: combinedUsers });
+  });
 });
 
 // NEW ENDPOINT: Suspend user
