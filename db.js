@@ -1,5 +1,7 @@
 const sqlite3 = require("sqlite3").verbose();
 const db = new sqlite3.Database(":memory:");
+const mongoose = require("mongoose");
+require("dotenv").config();
 
 db.serialize(() => {
   db.run(`
@@ -13,4 +15,14 @@ db.serialize(() => {
   `);
 });
 
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+  } catch (err) {
+    console.error("❌ MongoDB Connection Error:", err.message);
+    process.exit(1);
+  }
+};
+
 module.exports = db;
+module.exports = connectDB;

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const fs = require("fs");
 const path = require("path");
+const User = require("../models/User");
 
 // Middleware
 const isAuthenticated = (req, res, next) => {
@@ -31,9 +32,40 @@ router.get("/index", customerOnly, (req, res) => {
   res.render("customer/index", { products: productsData.products, user: req.session.user });
 });
 
-router.get("/booking", customerOnly, (req, res) => {
-  res.render("customer/booking");
+router.get("/booking", customerOnly, async (req, res) => {
+  try {
+    const serviceProvidersData = await User.find(
+      { role: "service-provider", suspended: { $ne: true } },
+      "name servicesOffered"
+    );
+
+    // Extract unique services and map providers
+    const serviceProviders = {};
+    const uniqueServices = new Set();
+
+    serviceProvidersData.forEach(provider => {
+      if (provider.servicesOffered && provider.servicesOffered.length > 0) {
+        provider.servicesOffered.forEach(service => {
+          uniqueServices.add(service);
+          if (!serviceProviders[service]) {
+            serviceProviders[service] = [];
+          }
+          serviceProviders[service].push(provider.name);
+        });
+      }
+    });
+
+    res.render("customer/booking", {
+      uniqueServices: Array.from(uniqueServices),
+      serviceProviders
+    });
+  } catch (error) {
+    console.error("Error fetching services:", error);
+    res.status(500).send("Error fetching services");
+  }
 });
+
+module.exports = router;
 
 router.get("/cart", customerOnly, (req, res) => {
   res.render("customer/cart");

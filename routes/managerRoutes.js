@@ -2,27 +2,8 @@ const express = require("express");
 const router = express.Router();
 const path = require("path");
 const fs = require("fs");
-const db = require("../db");
-// Helper to load users
-const usersFile = path.join(__dirname, "../data/users.json");
-const loadUsers = () => {
-  try {
-    return JSON.parse(fs.readFileSync(usersFile, "utf8"));
-  } catch {
-    return [];
-  }
-};
-
-// Helper to save users
-const saveUsers = (users) => {
-  try {
-    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2), "utf8");
-    return true;
-  } catch (error) {
-    console.error("Error saving users:", error);
-    return false;
-  }
-};
+const User = require("../models/User"); // Import User model
+const SellerProfile = require("../models/sellerProfile");
 
 // Middleware
 const isAuthenticated = (req, res, next) => {
@@ -36,8 +17,34 @@ const isManager = (req, res, next) => {
 };
 
 // Routes
-router.get("/dashboard", isAuthenticated, isManager, (req, res) => {
-  res.render("manager/dashboard");
+router.get("/dashboard", isAuthenticated, isManager, async (req, res) => {
+  try {
+    // Fetch total number of users
+    const totalUsers = await User.countDocuments();
+
+    // Fetch count by role
+    const userCounts = await User.aggregate([
+      { $group: { _id: "$role", count: { $sum: 1 } } }
+    ]);
+
+    // Convert userCounts to an object like { customer: 650, seller: 230, etc. }
+    const userDistribution = userCounts.reduce((acc, curr) => {
+      acc[curr._id] = curr.count;
+      return acc;
+    }, {});
+
+    // Ensure all roles are accounted for (default to 0 if missing)
+    const roles = ["customer", "service-provider", "seller", "admin"];
+    const formattedCounts = roles.map(role => userDistribution[role] || 0);
+
+    res.render("manager/dashboard", {
+      totalUsers,
+      userCounts: formattedCounts, // Will be used for pie chart
+    });
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    res.status(500).send("Error loading dashboard data.");
+  }
 });
 
 router.get("/orders", isAuthenticated, isManager, (req, res) => {
@@ -45,9 +52,9 @@ router.get("/orders", isAuthenticated, isManager, (req, res) => {
 });
 
 router.get("/payments", isAuthenticated, isManager, (req, res) => {
-  const paymentsPath = path.join(__dirname, '../data/payments.json'); // adjust path as needed
+  const paymentsPath = path.join(__dirname, "../data/payments.json"); // Adjust path as needed
 
-  fs.readFile(paymentsPath, 'utf8', (err, data) => {
+  fs.readFile(paymentsPath, "utf8", (err, data) => {
     if (err) {
       console.error("Failed to load payments data:", err);
       return res.status(500).send("Error loading payments.");
@@ -58,67 +65,72 @@ router.get("/payments", isAuthenticated, isManager, (req, res) => {
   });
 });
 
+router.get("/services", isAuthenticated, isManager, async (req, res) => {
+  try {
+      // Fetch active service providers (not suspended)
+      const serviceProviders = await User.find({
+          role: "service-provider",
+          suspended: { $ne: true }
+      });
 
+      // Fetch sellers with their profiles and ensure they're not suspended
+      const sellers = await SellerProfile.find()
+          .populate({
+              path: "sellerId",
+              match: { suspended: { $ne: true } }, // Ensuring seller is not suspended
+              select: "name email phone suspended"
+          });
 
-router.get("/services", isAuthenticated, isManager, (req, res) => {
-  res.render("manager/services");
+      // Filter out sellers where the associated User was suspended
+      const activeSellers = sellers.filter(seller => seller.sellerId !== null);
+
+      // Render the page with data
+      res.render("manager/services", { serviceProviders, sellers: activeSellers });
+
+  } catch (error) {
+      console.error(error);
+      res.status(500).send("Error fetching data");
+  }
 });
 
-router.get("/users", isAuthenticated, isManager, (req, res) => {
-  const jsonUsers = loadUsers(); // still load from users.json
+router.get("/users", isAuthenticated, isManager, async (req, res) => {
+  try {
+    const users = await User.find({}, "name email role suspended"); // Fetch users from MongoDB
 
-  // Get users from database
-  db.all("SELECT id, name, role FROM users", [], (err, dbUsers) => {
-    if (err) {
-      console.error("Failed to fetch users from DB:", err);
-      return res.status(500).send("Database error");
+    // Format the user data
+    const formattedDB = users.map(user => ({
+      ...user.toObject(), // Convert Mongoose document to plain object
+      status: user.suspended ? "Suspended" : "Active",
+      joined: "2024-01-15",
+    }));
+
+    // Render the view with MongoDB users only
+    res.render("manager/users", { users: formattedDB });
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).send("Database error");
+  }
+});
+
+router.post("/users/suspend/:id", async (req, res) => {
+  try {
+    const userId = req.params.id; // This should match _id in MongoDB
+    console.log("Suspending user with ID:", userId);
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Mark where each user came from (optional)
-    const formattedJSON = jsonUsers.map(user => ({
-      ...user,
-      status: "Active",
-      joined: "2024-01-15"
-    }));
+    // Instead of deleting, update the "suspended" field
+    user.suspended = true; // Ensure you have this field in your schema
+    await user.save();
 
-    const formattedDB = dbUsers.map(user => ({
-      ...user,
-      status: "Active",
-      joined: "2024-01-15"
-    }));
-
-    const combinedUsers = [...formattedJSON, ...formattedDB];
-
-    // Render the view with both
-    res.render("manager/users", { users: combinedUsers });
-  });
-});
-
-// NEW ENDPOINT: Suspend user
-router.post("/users/suspend/:id", isAuthenticated, isManager, (req, res) => {
-  const userId = req.params.id;
-  
-  // Load current users
-  const users = loadUsers();
-  
-  // Find the user with the given ID
-  const userIndex = users.findIndex(user => user.id.toString() === userId);
-  
-  if (userIndex === -1) {
-    return res.status(404).json({ success: false, message: "User not found" });
-  }
-  
-  // Remove the user
-  users.splice(userIndex, 1);
-  
-  // Save the updated users
-  if (saveUsers(users)) {
     res.json({ success: true, message: "User suspended successfully" });
-  } else {
-    res.status(500).json({ success: false, message: "Failed to update users data" });
+  } catch (error) {
+    console.error("Error suspending user:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
-
-
 
 module.exports = router;

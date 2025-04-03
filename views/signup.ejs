@@ -31,6 +31,7 @@
                     <option value="customer">Customer</option>
                     <option value="seller">Seller</option>
                     <option value="service-provider">Service Provider</option>
+                    <option value="manager">Manager</option>
                 </select>
 
                 <!-- Customer Signup -->
@@ -80,7 +81,9 @@
                     <input type="hidden" name="role" value="manager">
                     <div class="form-group"><input type="text" name="name" placeholder="Full Name" required></div>
                     <div class="form-group"><input type="email" name="email" placeholder="Manager Email" required></div>
+                    <div class="form-group"><input type="tel" name="phone" placeholder="Phone Number" required></div>
                     <div class="form-group"><input type="password" name="password" placeholder="Password" required></div>
+                    <div class="form-group"><input type="password" name="confirmPassword" placeholder="Retype Password" required></div>
                     <button type="submit" class="submit-btn">Register as Manager</button>
                 </form>
 

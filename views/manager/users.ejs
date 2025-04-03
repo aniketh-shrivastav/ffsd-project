@@ -38,6 +38,10 @@
         .user-section.active {
             display: block;
         }
+        /* Styling for suspended users */
+        .suspended-user {
+            background-color: #f8d7da !important;
+        }
     </style>
 </head>
 <body>
@@ -80,13 +84,16 @@
                         </thead>
                         <tbody>
                             <% users.filter(user => user.role === role).forEach(user => { %>
-                                <tr>
-                                    <td><%= user.id %></td>
+                                <tr class="<%= user.suspended ? 'suspended-user' : '' %>">
+                                    <td><%= user._id %></td>
                                     <td><%= user.name %></td>
                                     <td><%= user.email %></td>
                                     <td>
-                                        <button class="btn-approve">Approve</button>
-                                        <button class="btn-suspend" data-user-id="<%= user.id %>">Suspend</button>
+                                        <% if (!user.suspended) { %>
+                                            <button class="btn-suspend" data-user-id="<%= user._id %>">Suspend</button>
+                                        <% } else { %>
+                                            <span style="color: red;">Suspended</span>
+                                        <% } %>
                                     </td>
                                 </tr>
                             <% }) %>
@@ -127,31 +134,28 @@
     
             // Suspend button functionality
             document.querySelectorAll(".btn-suspend").forEach(button => {
-                button.addEventListener("click", function () {
-                    const userId = this.getAttribute("data-user-id");
-                    const row = this.closest("tr");
-    
-                    if (confirm("Are you sure you want to suspend this user?")) {
-                        fetch(`/admin/users/suspend/${userId}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                row.style.opacity = "0.5";
-                                this.innerText = "Suspended";
-                                this.style.background = "#777";
-                                this.disabled = true;
-                                alert("User has been suspended successfully!");
-                            } else {
-                                alert("Error: " + data.message);
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert("An error occurred while suspending the user.");
+                button.addEventListener("click", async () => {
+                    const userId = button.dataset.userId; // This should be _id from MongoDB
+            
+                    const confirmSuspend = confirm("Are you sure you want to suspend this user?");
+                    if (!confirmSuspend) return;
+            
+                    try {
+                        const response = await fetch(`/manager/users/suspend/${userId}`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" }
                         });
+            
+                        const data = await response.json();
+                        if (data.success) {
+                            alert("User suspended successfully");
+                            location.reload();
+                        } else {
+                            alert("Error: " + data.message);
+                        }
+                    } catch (error) {
+                        alert("An error occurred while suspending the user.");
+                        console.error("Suspend error:", error);
                     }
                 });
             });

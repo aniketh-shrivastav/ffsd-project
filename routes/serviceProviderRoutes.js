@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const User = require("../models/User");
 
 // Middleware
 const isAuthenticated = (req, res, next) => {
@@ -23,8 +24,28 @@ router.get("/dashboardService", serviceOnly, (req, res) => {
 });
 
 // Profile Settings
-router.get("/profileSettings", serviceOnly, (req, res) => {
-  res.render("service/profileSettings");
+router.get("/profileSettings", serviceOnly, async (req, res) => {
+  try {
+    // Ensure session user is available
+    if (!req.session.user || !req.session.user.id) {
+      return res.status(401).send("Unauthorized: Please log in again");
+    }
+
+    const user = await User.findById(req.session.user.id);
+
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+
+    // Ensure missing fields are initialized to avoid errors
+    user.phone = user.phone || "";
+    user.servicesOffered = user.servicesOffered || [];
+
+    res.render("service/profileSettings", { user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
 });
 
 // Booking Management

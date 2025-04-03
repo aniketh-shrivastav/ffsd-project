@@ -26,8 +26,7 @@
     <div class="stats-grid">
       <div class="stat-card">
         <h3>Total Users</h3>
-        <p class="number">1,234</p>
-        <p class="trend up">+5% this month</p>
+        <p class="number"><%= totalUsers %></p>
       </div>
       <div class="stat-card">
         <h3>Platform Activity</h3>
@@ -116,13 +115,14 @@
 
   <!-- Charts -->
   <script>
+    var userCounts = JSON.parse('<%- JSON.stringify(userCounts) %>');
     document.addEventListener('DOMContentLoaded', function () {
       new Chart(document.getElementById('userDistributionChart'), {
         type: 'pie',
         data: {
-          labels: ['Customers', 'Service Providers', 'Sellers', 'Admin'],
+          labels: ['Customers', 'Service Providers', 'Sellers', 'Manager'],
           datasets: [{
-            data: [650, 340, 230, 14],
+            data: userCounts,
             backgroundColor: ['#4299e1', '#48bb78', '#ed8936', '#9f7aea']
           }]
         },

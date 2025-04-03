@@ -33,29 +33,6 @@
             position: relative;
         }
 
-        .profile-type {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 4px 8px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: bold;
-            color: white;
-        }
-
-        .type-customer {
-            background-color: #9333ea;
-        }
-
-        .type-seller {
-            background-color: #f59e0b;
-        }
-
-        .type-service {
-            background-color: #0891b2;
-        }
-
         .profile-avatar {
             width: 80px;
             height: 80px;
@@ -77,18 +54,10 @@
             text-align: center;
         }
 
-        .profile-info {
-            margin-bottom: 15px;
-        }
-
         .profile-info p {
             margin: 5px 0;
             display: flex;
             justify-content: space-between;
-        }
-
-        .profile-info span {
-            font-weight: bold;
         }
 
         .profile-actions {
@@ -97,10 +66,14 @@
             margin-top: 10px;
         }
 
-        /* Category Tabs */
-        .category-tabs {
-            display: flex;
-            margin-bottom: 20px;
+        .seller-badge {
+            background: #ff5733;
+            color: white;
+            padding: 5px 10px;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 5px;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -110,12 +83,7 @@
         <div class="logo">
             <h2>Manager's Panel</h2>
         </div>
-        
-        <!-- Search Bar -->
-       
-
         <%- include("../partials/managerHeader") %>
-
     </header>
 
     <!-- Main Content -->
@@ -124,225 +92,80 @@
         <div class="search-bar">
             <input type="text" id="searchInput" placeholder="Search profiles...">
         </div>
-        
-        <!-- Profile Categories -->
-        <div class="category-tabs">
-            <button class="tab-btn active" data-type="all">All Profiles</button>
-            <button class="tab-btn" data-type="customer">Customers</button>
-            <button class="tab-btn" data-type="seller">Sellers</button>
-            <button class="tab-btn" data-type="service">Service Providers</button>
-        </div>
 
         <!-- Profiles Grid -->
         <div class="profiles-grid" id="profilesContainer">
-            <!-- Profiles will be loaded dynamically -->
+            
+            <!-- Render Service Providers -->
+            <% serviceProviders.forEach(provider => { %>
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <img src="<%= provider.profilePicture || 'https://via.placeholder.com/80' %>" alt="<%= provider.name %>" class="profile-avatar">
+                    </div>
+                    <div class="profile-body">
+                        <h3 class="profile-name"><%= provider.name %></h3>
+                        <div class="profile-info">
+                            <p><strong>Email:</strong> <span><%= provider.email %></span></p>
+                            <p><strong>Phone:</strong> <span><%= provider.phone %></span></p>
+                        </div>
+
+                        <h3>Services Offered:</h3>
+                        <ul>
+                            <% provider.servicesOffered.forEach(service => { %>
+                                <li><%= service %></li>
+                            <% }) %>
+                        </ul>
+
+                        <div class="profile-actions">
+                            <button class="btn-view" onclick="viewProfile('<%= provider._id %>')">View Profile</button>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+
+            <!-- Render Sellers -->
+            <% sellers.forEach(seller => { %>
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <img src="<%= seller.sellerId.profilePicture || 'https://via.placeholder.com/80' %>" alt="<%= seller.sellerId.name %>" class="profile-avatar">
+                    </div>
+                    <div class="profile-body">
+                        <h3 class="profile-name"><%= seller.sellerId.name %></h3>
+                        <div class="profile-info">
+                            <p><strong>Contact Email:</strong> <span><%= seller.sellerId.email %></span></p>
+                            <p><strong>Phone:</strong> <span><%= seller.sellerId.phone %></span></p>
+                        </div>
+
+                        <h3>Store Details:</h3>
+                        <p><strong>Owner Name:</strong> <%= seller.ownerName %></p>
+                        <p><strong>Store Address:</strong> <%= seller.address %></p>
+
+                        <div class="seller-badge">Seller</div>
+
+                        <div class="profile-actions">
+                            <button class="btn-view" onclick="viewProfile('<%= seller._id %>')">View Profile</button>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+
         </div>
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Sample profiles data
-            const profiles = [
-                {
-                    id: 1,
-                    name: "John Smith",
-                    email: "john.smith@example.com",
-                    phone: "(555) 123-4567",
-                    joined: "Mar 10, 2024",
-                    type: "customer",
-                    status: "Active",
-                    orders: 12,
-                    location: "Los Angeles, CA"
-                },
-                {
-                    id: 2,
-                    name: "CarWraps Pro",
-                    email: "info@carwrapspro.com",
-                    phone: "(555) 234-5678",
-                    joined: "Jan 15, 2024",
-                    type: "service",
-                    status: "Active",
-                    orders: 45,
-                    rating: 4.8,
-                    specialization: "Vehicle Wraps"
-                },
-                {
-                    id: 3,
-                    name: "AutoParts Plus",
-                    email: "sales@autopartsplus.com",
-                    phone: "(555) 345-6789",
-                    joined: "Nov 5, 2023",
-                    type: "seller",
-                    status: "Active",
-                    products: 127,
-                    rating: 4.6,
-                    category: "Performance Parts"
-                },
-                {
-                    id: 4,
-                    name: "Emily Johnson",
-                    email: "emily.j@example.com",
-                    phone: "(555) 456-7890",
-                    joined: "Feb 22, 2024",
-                    type: "customer",
-                    status: "Active",
-                    orders: 3,
-                    location: "Chicago, IL"
-                },
-                {
-                    id: 5,
-                    name: "TurboTech",
-                    email: "support@turbotech.com",
-                    phone: "(555) 567-8901",
-                    joined: "Dec 8, 2023",
-                    type: "service",
-                    status: "Active",
-                    orders: 78,
-                    rating: 4.9,
-                    specialization: "Turbo Installation"
-                },
-                {
-                    id: 6,
-                    name: "Wheel Emporium",
-                    email: "contact@wheelemporium.com",
-                    phone: "(555) 678-9012",
-                    joined: "Oct 30, 2023",
-                    type: "seller",
-                    status: "Active",
-                    products: 89,
-                    rating: 4.7,
-                    category: "Wheels & Tires"
-                },
-                {
-                    id: 7,
-                    name: "Michael Chen",
-                    email: "mchen@example.com",
-                    phone: "(555) 789-0123",
-                    joined: "Jan 5, 2024",
-                    type: "customer",
-                    status: "Active",
-                    orders: 8,
-                    location: "Seattle, WA"
-                },
-                {
-                    id: 8,
-                    name: "Custom Audio Labs",
-                    email: "info@customaudiolabs.com",
-                    phone: "(555) 890-1234",
-                    joined: "Nov 15, 2023",
-                    type: "service",
-                    status: "Active",
-                    orders: 62,
-                    rating: 4.5,
-                    specialization: "Audio Systems"
-                },
-                {
-                    id: 9,
-                    name: "Performance Exhaust Co",
-                    email: "sales@perfexhaust.com",
-                    phone: "(555) 901-2345",
-                    joined: "Sep 20, 2023",
-                    type: "seller",
-                    status: "Active",
-                    products: 45,
-                    rating: 4.4,
-                    category: "Exhaust Systems"
-                }
-            ];
+        function viewProfile(id) {
+            alert(`Viewing profile details for ID: ${id}`);
+            // In real implementation, redirect to profile details page
+            // window.location.href = `/manager/profiles/${id}`;
+        }
 
-            // Function to render profiles
-            function renderProfiles(profilesData) {
-                const container = document.getElementById('profilesContainer');
-                container.innerHTML = '';
-
-                profilesData.forEach(profile => {
-                    const card = document.createElement('div');
-                    card.classList.add('profile-card');
-                    card.setAttribute('data-type', profile.type);
-
-                    // Different info based on profile type
-                    let profileInfo = '';
-                    if (profile.type === 'customer') {
-                        profileInfo = `
-                            <p>Location: <span>${profile.location}</span></p>
-                            <p>Orders: <span>${profile.orders}</span></p>
-                        `;
-                    } else if (profile.type === 'seller') {
-                        profileInfo = `
-                            <p>Products: <span>${profile.products}</span></p>
-                            <p>Rating: <span>${profile.rating}/5</span></p>
-                            <p>Category: <span>${profile.category}</span></p>
-                        `;
-                    } else if (profile.type === 'service') {
-                        profileInfo = `
-                            <p>Orders: <span>${profile.orders}</span></p>
-                            <p>Rating: <span>${profile.rating}/5</span></p>
-                            <p>Specialization: <span>${profile.specialization}</span></p>
-                        `;
-                    }
-
-                    card.innerHTML = `
-                        <div class="profile-header">
-                            <div class="profile-type type-${profile.type}">${profile.type.charAt(0).toUpperCase() + profile.type.slice(1)}</div>
-                            <img src="/api/placeholder/80/80" alt="${profile.name}" class="profile-avatar">
-                        </div>
-                        <div class="profile-body">
-                            <h3 class="profile-name">${profile.name}</h3>
-                            <div class="profile-info">
-                                <p>Email: <span>${profile.email}</span></p>
-                                <p>Phone: <span>${profile.phone}</span></p>
-                                <p>Joined: <span>${profile.joined}</span></p>
-                                <p>Status: <span>${profile.status}</span></p>
-                                ${profileInfo}
-                            </div>
-                            <div class="profile-actions">
-                                <button class="btn-view" onclick="viewProfile(${profile.id})">View Profile</button>
-                            </div>
-                        </div>
-                    `;
-
-                    container.appendChild(card);
-                });
-            }
-
-            // Initial render
-            renderProfiles(profiles);
-
-            // Tab switching functionality
-            const tabs = document.querySelectorAll(".tab-btn");
-            tabs.forEach(tab => {
-                tab.addEventListener("click", function() {
-                    // Remove active class from all tabs
-                    tabs.forEach(t => t.classList.remove("active"));
-                    this.classList.add("active");
-
-                    // Filter profiles
-                    const type = this.getAttribute("data-type");
-                    if (type === "all") {
-                        renderProfiles(profiles);
-                    } else {
-                        const filteredProfiles = profiles.filter(profile => profile.type === type);
-                        renderProfiles(filteredProfiles);
-                    }
-                });
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            document.querySelectorAll('.profile-card').forEach(card => {
+                const name = card.querySelector('.profile-name').textContent.toLowerCase();
+                const email = card.querySelector('.profile-info span').textContent.toLowerCase();
+                card.style.display = name.includes(searchTerm) || email.includes(searchTerm) ? 'block' : 'none';
             });
-
-            // Search functionality
-            document.getElementById('searchInput').addEventListener('input', function(e) {
-                const searchTerm = e.target.value.toLowerCase();
-                const filteredProfiles = profiles.filter(profile => 
-                    profile.name.toLowerCase().includes(searchTerm) || 
-                    profile.email.toLowerCase().includes(searchTerm)
-                );
-                renderProfiles(filteredProfiles);
-            });
-
-            // View profile function
-            window.viewProfile = function(id) {
-                alert(`Viewing profile details for ID: ${id}`);
-                // In a real implementation, this would redirect to a profile details page
-                // window.location.href = `/admin/profiles/${id}`;
-            };
         });
     </script>
 </body>

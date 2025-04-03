@@ -19,32 +19,26 @@
         <h2>Select your preferred services</h2>
         
         <form id="booking-form">
-            <label>Service Type:</label>
-            <select id="service" multiple>
-                <option value="Custom Paint">Custom Paint</option>
-                <option value="Window Tint">Window Tint</option>
-                <option value="Interior Upgrade">Interior Upgrade</option>
-                <option value="Engine Tuning">Engine Tuning</option>
-                <option value="Brake Upgrade">Brake Upgrade</option>
-                <option value="Suspension Modification">Suspension Modification</option>
+            <label for="service">Service Type:</label>
+            <select id="service" required>
+                <% if (uniqueServices && uniqueServices.length > 0) { %>
+                    <% uniqueServices.forEach(service => { %>
+                        <option value="<%= service %>"><%= service %></option>
+                    <% }) %>
+                <% } else { %>
+                    <option disabled>No services available</option>
+                <% } %>
             </select>
 
-            <label>Date:</label>
+            <label for="date">Select Date:</label>
             <input type="date" id="date" required>
 
-            <label>District:</label>
-            <select id="district" required>
-                <option value="">Select District</option>
-                <option value="District A">District A</option>
-                <option value="District B">District B</option>
-                <option value="District C">District C</option>
-            </select>
-
-            <label>Service Provider:</label>
+            <label for="service-provider">Service Provider:</label>
             <select id="service-provider" required disabled>
                 <option value="">Select Service Provider</option>
             </select>
-            <label>Phone Number:</label>
+
+            <label for="phone">Phone Number:</label>
             <input type="tel" id="phone" required placeholder="Enter 10-digit number">
 
             <button type="submit">Book Now</button>
@@ -73,6 +67,28 @@
         </div>
     </footer>
 
-    <script src="/scripts/customerBooking.js"></script>
+    <script>
+        const serviceProviders = JSON.parse('<%- JSON.stringify(serviceProviders) %>');
+
+        document.getElementById("service").addEventListener("change", function() {
+            let selectedService = this.value;
+            let providerSelect = document.getElementById("service-provider");
+
+            providerSelect.innerHTML = '<option value="">Select Service Provider</option>';
+
+            if (selectedService && serviceProviders[selectedService]) {
+                serviceProviders[selectedService].forEach(provider => {
+                    let option = document.createElement("option");
+                    option.value = provider;
+                    option.textContent = provider;
+                    providerSelect.appendChild(option);
+                });
+                providerSelect.disabled = false;
+            } else {
+                providerSelect.disabled = true;
+            }
+        });
+    </script>
+
 </body>
 </html>

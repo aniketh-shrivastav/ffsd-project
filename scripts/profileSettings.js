@@ -15,50 +15,40 @@ function enableEdit() {
     });
 }    
 
-function saveChanges() {
-    const nameInput = document.getElementById("name");
-    const emailInput = document.getElementById("email");
-    const phoneInput = document.getElementById("phone");
-    const passwordInput = document.getElementById("password");
+async function saveChanges() {
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    
+    // Collect service items from the UI
+    const serviceList = document.querySelectorAll(".service-item");
+    const servicesOffered = Array.from(serviceList).map(li => li.innerText.replace("Delete", "").trim());
 
-   
-    const namePattern = /^[A-Za-z]+[A-Za-z\s]*$/; 
-    if (!namePattern.test(nameInput.value.trim())) {
-        alert("Name should contain at least one alphabet character. Numbers are not allowed.");
-        return;
+    const data = {
+        name,
+        phone,
+        servicesOffered
+    };
+
+    console.log("Sending data:", data); // Debugging
+
+    try {
+        const response = await fetch("/profile/update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            alert("Profile updated successfully!");
+            location.reload();
+        } else {
+            alert("Error: " + result.message);
+        }
+    } catch (error) {
+        console.error("Profile update failed:", error);
+        alert("Failed to update profile.");
     }
-
- 
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(emailInput.value)) {
-        alert("Please enter a valid email address.");
-        return;
-    }
-
-   
-    const phonePattern = /^\d{10}$/;
-    if (!phonePattern.test(phoneInput.value)) {
-        alert("Phone number must be exactly 10 digits.");
-        return;
-    }
-
-   
-    nameInput.disabled = true;
-    emailInput.disabled = true;
-    phoneInput.disabled = true;
-    document.getElementById("passwordField").style.display = "none";
-    document.querySelector(".edit-btn").style.display = "inline-block";
-    document.querySelector(".save-btn").style.display = "none";
-    document.querySelector(".cancel-btn").style.display = "none";
-    document.querySelector(".edit-pass-btn").style.display = "none";
-    document.querySelector(".service-input-container").style.display = "none";
-    document.querySelector(".add-service-btn").style.display = "none";
-
-    // Hide delete buttons
-    document.querySelectorAll(".delete-btn").forEach(btn => {
-        btn.style.display = "none";
-    });
-
 }
 
 

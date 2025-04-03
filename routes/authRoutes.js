@@ -3,21 +3,10 @@ const router = express.Router();
 const fs = require("fs");
 const path = require("path");
 const db = require("../db"); // instead of creating a new sqlite3.Database
+const bcrypt = require("bcryptjs");
+const User = require("../models/User");
 
 
-const dataDir = path.join(__dirname, "../data");
-const usersFile = path.join(dataDir, "users.json");
-
-
-
-// Load users from JSON
-const loadUsers = () => {
-  try {
-    return JSON.parse(fs.readFileSync(usersFile, "utf8"));
-  } catch {
-    return [];
-  }
-};
 
 // ─────────────────────────────────────────────
 // GET Signup
@@ -29,58 +18,72 @@ router.get("/signup", (req, res) => {
 // ─────────────────────────────────────────────
 // POST Signup
 // ─────────────────────────────────────────────
-router.post("/signup", (req, res) => {
-  const { name, email, password, role, businessName, workshopName } = req.body;
-  const persistedUsers = loadUsers();
+router.post("/signup", async (req, res) => {
+  const { name, email, password, role, businessName, workshopName, phone } = req.body;
   const finalName = name || businessName || workshopName;
+  
+  if (!phone || !/^\d{10}$/.test(phone.trim())) {
+      error = "Phone number must be 10 digits.";
+  }
+  
+  
 
+  // Validation regex
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const nameRegex = /^[A-Za-z\s.-]+$/;
 
   let error = null;
   if (!finalName || !email || !password || !role) {
-    error = "All fields are required";
+      error = "All fields are required";
   } else if (!emailRegex.test(email) || !email.endsWith(".com")) {
-    error = "Please enter a valid email ending in .com";
+      error = "Please enter a valid email ending in .com";
   } else if (!nameRegex.test(finalName)) {
-    error = "Name should not contain numbers or special characters";
-  } else if ([...persistedUsers].some(u => u.email === email)) {
-    error = "Email already exists";
+      error = "Name should not contain numbers or special characters";
   }
 
   if (error) {
-    if (req.headers.accept.includes('application/json')) {
-      return res.status(400).json({ success: false, message: error });
-    } else {
-      return res.render("signup", { error });
-    }
+      if (req.headers.accept.includes("application/json")) {
+          return res.status(400).json({ success: false, message: error });
+      } else {
+          return res.render("signup", { error });
+      }
   }
 
-  const newUser = {
-    id: Date.now(),
-    name: finalName,
-    email,
-    password,
-    role
-  };
+  try {
+      // Check if email already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+          error = "Email already exists";
+          if (req.headers.accept.includes("application/json")) {
+              return res.status(400).json({ success: false, message: error });
+          } else {
+              return res.render("signup", { error });
+          }
+      }
 
-  
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-  db.run(`
-    INSERT INTO users (id, name, email, password, role)
-    VALUES (?, ?, ?, ?, ?)
-  `, [newUser.id, newUser.name, newUser.email, newUser.password, newUser.role], (err) => {
-    if (err) {
-      console.error("SQLite insert error:", err.message);
-    } else {
-      console.log("✅ SQLite user inserted:", newUser);
-    }
-  });
+      // Save user in MongoDB
+      const newUser = new User({
+        name: finalName,
+        email,
+        phone,  // <-- Added phone here
+        password: hashedPassword,
+        role,
+    });
 
-  if (req.headers.accept.includes('application/json')) {
-    return res.json({ success: true, message: "Signup successful. Redirecting to login..." });
-  } else {
-    return res.redirect("/login");
+      await newUser.save();
+      console.log("MongoDB user inserted:", newUser);
+
+      if (req.headers.accept.includes("application/json")) {
+          return res.json({ success: true, message: "Signup successful. Redirecting to login..." });
+      } else {
+          return res.redirect("/login");
+      }
+  } catch (error) {
+      console.error("MongoDB error:", error.message);
+      res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
@@ -94,33 +97,53 @@ router.get("/login", (req, res) => {
 // ─────────────────────────────────────────────
 // POST Login
 // ─────────────────────────────────────────────
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  const persistedUsers = loadUsers();
 
-  db.get("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], (err, sqliteUser) => {
-    if (err) {
-      console.error("SQLite error:", err);
-      return res.status(500).send("Internal error");
-    }
+  try {
+      // Find user in MongoDB
+      const user = await User.findOne({ email });
+      if (!user) {
+          return res.status(401).json({ message: "Invalid credentials" });
+      }
 
-    
-    const jsonUser = persistedUsers.find(u => u.email === email && u.password === password);
+      // Check if the user is suspended
+      if (user.suspended) {
+          return res.status(403).json({ message: "Your account is suspended. Contact support for assistance." });
+      }
 
-    const user = sqliteUser || jsonUser;
+      // Compare entered password with hashed password in MongoDB
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+          return res.status(401).json({ message: "Invalid credentials" });
+      }
 
-    if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+      // Store user session
+      req.session.user = {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
+    };
 
-    req.session.user = { id: user.id, name: user.name, role: user.role };
-
-    if (user.role === "manager") res.redirect("/manager/dashboard");
-    else if (user.role === "customer") res.redirect("/customer/index");
-    else if (user.role === "seller") res.redirect("/Seller/dashboard");
-    else if (user.role === "service-provider") res.redirect("/service/dashboardService");
-    else res.status(403).send("Unknown role");
-  });
+      // Role-based redirection
+      switch (user.role) {
+          case "manager":
+              return res.redirect("/manager/dashboard");
+          case "customer":
+              return res.redirect("/customer/index");
+          case "seller":
+              return res.redirect("/Seller/dashboard");
+          case "service-provider":
+              return res.redirect("/service/dashboardService");
+          default:
+              return res.status(403).send("Unknown role");
+      }
+  } catch (error) {
+      console.error("MongoDB error:", error.message);
+      res.status(500).send("Internal server error");
+  }
 });
 
 // ─────────────────────────────────────────────
