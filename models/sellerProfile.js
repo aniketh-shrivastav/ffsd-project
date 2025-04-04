@@ -10,7 +10,7 @@ const SellerProfileSchema = new mongoose.Schema({
 SellerProfileSchema.pre(/^find/, function(next) {
     this.populate({
         path: "sellerId",
-        select: "name email phone"
+        select: "name email phone suspended"
     });
     next();
 });

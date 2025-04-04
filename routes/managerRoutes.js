@@ -19,11 +19,12 @@ const isManager = (req, res, next) => {
 // Routes
 router.get("/dashboard", isAuthenticated, isManager, async (req, res) => {
   try {
-    // Fetch total number of users
-    const totalUsers = await User.countDocuments();
+    // Fetch total number of active users (excluding suspended users)
+    const totalUsers = await User.countDocuments({ suspended: { $ne: true } });
 
-    // Fetch count by role
+    // Fetch count by role, excluding suspended users
     const userCounts = await User.aggregate([
+      { $match: { suspended: { $ne: true } } }, // Exclude suspended users
       { $group: { _id: "$role", count: { $sum: 1 } } }
     ]);
 
@@ -72,17 +73,13 @@ router.get("/services", isAuthenticated, isManager, async (req, res) => {
           role: "service-provider",
           suspended: { $ne: true }
       });
-
-      // Fetch sellers with their profiles and ensure they're not suspended
-      const sellers = await SellerProfile.find()
-          .populate({
-              path: "sellerId",
-              match: { suspended: { $ne: true } }, // Ensuring seller is not suspended
-              select: "name email phone suspended"
-          });
+     
 
       // Filter out sellers where the associated User was suspended
-      const activeSellers = sellers.filter(seller => seller.sellerId !== null);
+      const sellers = await SellerProfile.find().populate("sellerId", "name email phone suspended");
+
+      const activeSellers = sellers.filter(seller => seller.sellerId && !seller.sellerId.suspended);
+
 
       // Render the page with data
       res.render("manager/services", { serviceProviders, sellers: activeSellers });
