@@ -75,7 +75,6 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const formData = new FormData(form);
             const userType = userTypeSelect.value;
-            console.log("Selected Role:", userType);
 
             const password = formData.get('password');
        const confirmPassword = formData.get('confirmPassword');
@@ -116,7 +115,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     ...userData,
                     name: formData.get('name'),
                     email: formData.get('email'),
-                    phone: formData.get('phone'),
                     password: formData.get('password')
                 };
             }
