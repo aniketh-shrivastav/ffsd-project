@@ -240,3 +240,38 @@ input:disabled {
 .password-container {
     display: none;
 }
+
+.delete-account-section {
+    margin-top: 40px;
+    padding: 20px;
+    background: #fff3f3;
+    border: 1px solid #f44336;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.delete-account-section h3 {
+    color: #d32f2f;
+    margin-bottom: 10px;
+}
+
+.delete-account-section p {
+    color: #555;
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+}
+
+.delete-account-section .delete-btn {
+    background-color: #f44336;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.delete-account-section .delete-btn:hover {
+    background-color: #c62828;
+}

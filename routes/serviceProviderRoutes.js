@@ -66,5 +66,17 @@ router.get("/reviews", serviceOnly, (req, res) => {
   res.render("service/reviews");
 });
 
+// DELETE /service/profile/delete/:id
+router.delete("/profile/delete/:id", async (req, res) => {
+  try {
+      const result = await User.findByIdAndDelete(req.params.id);
+      if (!result) return res.status(404).json({ success: false, message: "User not found" });
+      res.status(200).json({ success: true, message: "Account deleted successfully" });
+  } catch (error) {
+      console.error("Error deleting account:", error);
+      res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 
 module.exports = router;

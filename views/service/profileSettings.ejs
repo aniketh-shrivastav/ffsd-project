@@ -64,8 +64,35 @@
                 <button type="button" class="btn cancel-btn" id="cancelBtn" onclick="cancelEdit()">Cancel</button>
             </div>
         </form>
+        <div class="delete-account-section">
+            <h3>Danger Zone</h3>
+            <p>Once you delete your account, there is no going back. Please be certain.</p>
+            <button id="delete-account-btn" class="delete-btn">Delete My Account</button>
+        </div>
     </div>
 
     <script src="/scripts/profileSettings.js"></script>
+    <script>
+        document.getElementById("delete-account-btn").addEventListener("click", async function () {
+            if (confirm("Are you sure you want to permanently delete your account? This action cannot be undone.")) {
+                try {
+                    const response = await fetch("/service/profile/delete/<%= user.id %>", {
+                        method: "DELETE"
+                    });
+    
+                    const result = await response.json();
+                    if (result.success) {
+                        alert("Account deleted successfully.");
+                        window.location.href = "/"; // Redirect to home or login page
+                    } else {
+                        alert("Error: " + result.message);
+                    }
+                } catch (error) {
+                    console.error("Delete failed:", error);
+                    alert("Failed to delete account.");
+                }
+            }
+        });
+    </script>
 </body>
 </html>
