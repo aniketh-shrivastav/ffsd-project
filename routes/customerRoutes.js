@@ -3,6 +3,8 @@ const router = express.Router();
 const fs = require("fs");
 const path = require("path");
 const User = require("../models/User");
+const Cart = require("../models/Cart");
+const { getAllProducts, getProductById } = require("../utils/productUtils");
 
 // Middleware
 const isAuthenticated = (req, res, next) => {
@@ -29,7 +31,8 @@ try {
 
 // Routes
 router.get("/index", customerOnly, (req, res) => {
-  res.render("customer/index", { products: productsData.products, user: req.session.user });
+  const products = getAllProducts();
+  res.render("customer/index", { products, user: req.session.user });
 });
 
 router.get("/booking", customerOnly, async (req, res) => {
@@ -65,11 +68,67 @@ router.get("/booking", customerOnly, async (req, res) => {
   }
 });
 
-module.exports = router;
 
-router.get("/cart", customerOnly, (req, res) => {
-  res.render("customer/cart");
+router.get("/cart", customerOnly, async (req, res) => {
+  try {
+      const cart = await Cart.findOne({ userId: req.session.user.id });
+      res.render("customer/cart", {
+          user: req.session.user,
+          items: cart?.items || []
+      });
+  } catch (err) {
+      console.error("Cart fetch error:", err.message);
+      res.render("customer/cart", {
+          user: req.session.user,
+          items: [],
+          error: "Failed to load cart"
+      });
+  }
 });
+
+router.post("/cart/add", customerOnly, async (req, res) => {
+  try {
+      const userId = req.session.user.id;
+      const { id } = req.body;
+
+      const product = getProductById(parseInt(id));
+      console.log("Incoming cart item:", { id, product }); // ✅ Debugging line added here
+
+      if (!product) {
+          return res.status(404).json({ success: false, message: "Product not found" });
+      }
+
+      const { name, price, image } = product;
+
+      let cart = await Cart.findOne({ userId });
+
+      if (!cart) {
+          cart = new Cart({ userId, items: [] });
+      }
+
+      const existingItem = cart.items.find(item => item.productId === id.toString());
+
+      if (existingItem) {
+          existingItem.quantity += 1;
+      } else {
+        cart.items.push({
+          productId: id.toString(), // <-- Important!
+          name,
+          price,
+          image,
+          quantity: 1
+        });
+      }
+
+      await cart.save();
+      console.log("Cart after add:", cart.items);
+      res.json({ success: true });
+  } catch (error) {
+      console.error("Cart add error:", error.message);
+      res.status(500).json({ success: false, message: "Error adding to cart" });
+  }
+});
+
 
 router.get("/history", customerOnly, (req, res) => {
   res.render("customer/history");

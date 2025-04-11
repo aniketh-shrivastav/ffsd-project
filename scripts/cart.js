@@ -1,129 +1,123 @@
-document.addEventListener("DOMContentLoaded", function () {
-  loadCart();
-});
-
-function loadCart() {
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
-let cartContainer = document.getElementById("cart-container");
-let totalPrice = 0;
-
-cartContainer.innerHTML = "";
-if (cart.length === 0) {
-cartContainer.innerHTML = '<p class="empty-cart">Your cart is empty.</p>';
-document.getElementById("total-section").style.display = "none";
-return;
-}
-
-document.getElementById("total-section").style.display = "block";
-
-cart.forEach((item, index) => {
-let cartItem = document.createElement("div");
-cartItem.classList.add("cart-item");
-cartItem.innerHTML = `
-  <img src="${item.image}" alt="${item.name}">
- <p>${item.name} - ₹${item.price}</p>
-
-  <div>
-      <button class="quantity-btn" data-index="${index}" data-action="decrease">−</button>
-      <span class="quantity" id="qty-${index}">${item.quantity}</span>
-      <button class="quantity-btn" data-index="${index}" data-action="increase">+</button>
-  </div>
-  <button class="remove" data-index="${index}">Remove</button>
-`;
-cartContainer.appendChild(cartItem);
-totalPrice += item.price * item.quantity;
-});
-
-document.getElementById("total-price").textContent = totalPrice.toFixed(2);
-
-// Quantity button handlers
-document.querySelectorAll(".quantity-btn").forEach(button => {
-button.addEventListener("click", function () {
-  let index = parseInt(this.getAttribute("data-index"));
-  let action = this.getAttribute("data-action");
-
-  if (action === "increase") {
-      cart[index].quantity += 1;
-  } else if (action === "decrease" && cart[index].quantity > 1) {
-      cart[index].quantity -= 1;
-  }
-
-  localStorage.setItem("cart", JSON.stringify(cart));
-  loadCart();
-});
-});
-
-// Remove button handlers
-document.querySelectorAll(".remove").forEach(button => {
-button.addEventListener("click", function () {
-  let index = this.getAttribute("data-index");
-  cart.splice(index, 1);
-  localStorage.setItem("cart", JSON.stringify(cart));
-  loadCart();
-});
-});
-}
-
-document.getElementById("checkout-btn").addEventListener("click", function () {
-  document.getElementById("payment-selection").style.display = "block";
-  loadPaymentMethods();
-});
-
-function loadPaymentMethods() {
-  let savedPayments = JSON.parse(localStorage.getItem("paymentMethods")) || [];
-  let paymentDiv = document.getElementById("saved-payments");
-  paymentDiv.innerHTML = "";
+document.addEventListener("DOMContentLoaded", () => {
+    loadCart();
   
-  savedPayments.forEach((payment, index) => {
-      paymentDiv.innerHTML += `<label><input type='radio' name='payment-method' value='${index}'> ${payment}</label>`;
+    // Checkout button handler
+    document.getElementById("checkout-btn").addEventListener("click", () => {
+      document.getElementById("payment-selection").style.display = "block";
+      loadPaymentMethods();
+    });
+  
+    // Confirm payment method
+    document.getElementById("confirm-payment").addEventListener("click", () => {
+      const selected = document.querySelector("input[name='payment-method']:checked");
+      if (!selected) return alert("Please select a payment method.");
+  
+      const paymentMethod = selected.value === "cod"
+        ? "Cash on Delivery"
+        : JSON.parse(localStorage.getItem("paymentMethods"))[selected.value];
+  
+      localStorage.setItem("selectedPaymentMethod", paymentMethod);
+      document.getElementById("checkout-section").style.display = "block";
+    });
+  
+    // Booking a service
+    document.getElementById("book-service").addEventListener("click", () => {
+      window.location.href = "service";
+    });
+  
+    // Placing the order
+    document.getElementById("place-order").addEventListener("click", async () => {
+      const paymentMethod = localStorage.getItem("selectedPaymentMethod") || "Not Selected";
+      const res = await fetch(`/api/cart/place-order/${userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentMethod }),
+      });
+  
+      if (res.ok) {
+        alert("Order placed successfully!");
+        window.location.href = "history";
+      } else {
+        alert("Error placing order.");
+      }
+    });
   });
-}
-
-document.getElementById("confirm-payment").addEventListener("click", function () {
-  let selectedMethod = document.querySelector("input[name='payment-method']:checked");
-  if (!selectedMethod) {
-      alert("Please select a payment method.");
+  
+  // Load cart from server and render it
+  async function loadCart() {
+    const res = await fetch(`/api/cart/${userId}`);
+    const data = await res.json();
+    const cart = data.items || [];
+  
+    const cartContainer = document.getElementById("cart-container");
+    const totalSection = document.getElementById("total-section");
+    let totalPrice = 0;
+  
+    cartContainer.innerHTML = "";
+    if (cart.length === 0) {
+      cartContainer.innerHTML = '<p class="empty-cart">Your cart is empty.</p>';
+      totalSection.style.display = "none";
       return;
+    }
+  
+    totalSection.style.display = "block";
+  
+    cart.forEach(item => {
+      totalPrice += item.price * item.quantity;
+  
+      const itemElement = document.createElement("div");
+      itemElement.classList.add("cart-item");
+      itemElement.innerHTML = `
+        <img src="${item.image}" alt="${item.name}">
+        <p>${item.name} - ₹${item.price}</p>
+        <div>
+          <button class="quantity-btn" data-id="${item.productId}" data-action="decrease">−</button>
+          <span class="quantity">${item.quantity}</span>
+          <button class="quantity-btn" data-id="${item.productId}" data-action="increase">+</button>
+        </div>
+        <button class="remove" data-id="${item.productId}">Remove</button>
+      `;
+  
+      cartContainer.appendChild(itemElement);
+    });
+  
+    document.getElementById("total-price").textContent = totalPrice.toFixed(2);
+  
+    // Quantity controls
+    document.querySelectorAll(".quantity-btn").forEach(btn => {
+      btn.addEventListener("click", async function () {
+        const productId = this.dataset.id;
+        const action = this.dataset.action;
+        await fetch(`/api/cart/update/${userId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId, action }),
+        });
+        loadCart();
+      });
+    });
+  
+    // Remove item
+    document.querySelectorAll(".remove").forEach(btn => {
+      btn.addEventListener("click", async function () {
+        const productId = this.dataset.id;
+        await fetch(`/api/cart/remove/${userId}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId }),
+        });
+        loadCart();
+      });
+    });
   }
   
-  let paymentText = selectedMethod.value === "cod" ? "Cash on Delivery" : 
-      JSON.parse(localStorage.getItem("paymentMethods"))[selectedMethod.value];
-
-  localStorage.setItem("selectedPaymentMethod", paymentText);
-  document.getElementById("checkout-section").style.display = "block";
-});
-
-document.getElementById("book-service").addEventListener("click", function () {
-  let cart = JSON.parse(localStorage.getItem("cart")) || [];
-  if (cart.length === 0) {
-      alert("Your cart is empty. Add items before booking a service.");
-      return;
+  // Load saved payment methods from localStorage
+  function loadPaymentMethods() {
+    const saved = JSON.parse(localStorage.getItem("paymentMethods")) || [];
+    const container = document.getElementById("saved-payments");
+    container.innerHTML = "";
+    saved.forEach((method, index) => {
+      container.innerHTML += `<label><input type="radio" name="payment-method" value="${index}"> ${method}</label>`;
+    });
   }
-
-  let selectedPaymentMethod = localStorage.getItem("selectedPaymentMethod") || "Not Selected";
-  localStorage.setItem("cartBackup", JSON.stringify(cart));
-  localStorage.setItem("paymentBackup", selectedPaymentMethod);
-  window.location.href = "service";
-});
-document.getElementById("place-order").addEventListener("click", function () {
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
-if (cart.length === 0) {
-alert("Your cart is empty. Add items before placing an order.");
-return;
-}
-
-let selectedPaymentMethod = localStorage.getItem("selectedPaymentMethod") || "Not Selected";
-
-let deliveryDate = new Date();
-deliveryDate.setDate(deliveryDate.getDate() + Math.floor(Math.random() * 3) + 5); // Arrives in 5-7 days
-
-let upcomingOrders = JSON.parse(localStorage.getItem("upcomingOrders")) || [];
-upcomingOrders.push({ cart, paymentMethod: selectedPaymentMethod, arrival: deliveryDate.toDateString() });
-
-localStorage.setItem("upcomingOrders", JSON.stringify(upcomingOrders));
-
-alert("Order placed successfully! Estimated arrival: " + deliveryDate.toDateString());
-
-localStorage.removeItem("cart"); // Clear cart after placing order
-window.location.href = "history";
-});
+  

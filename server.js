@@ -44,6 +44,7 @@ const serviceProviderRoutes = require("./routes/serviceProviderRoutes");
 const { router: contactRoutes } = require("./routes/contactRoutes");
 const sellerRoutes = require("./routes/sellerRoutes");
 const profileSettingsRoutes = require("./routes/profileSettingsRoutes");
+const cartRoutes = require("./routes/cartRoutes");
 
 app.use("/", profileSettingsRoutes);
 app.use("/", authRoutes);
@@ -52,6 +53,7 @@ app.use("/customer", customerRoutes);
 app.use("/service", serviceProviderRoutes);
 app.use("/", contactRoutes);
 app.use("/seller", sellerRoutes);
+app.use("/api/cart", cartRoutes);
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true }));
 
