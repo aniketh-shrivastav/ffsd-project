@@ -75,6 +75,15 @@
             border-radius: 5px;
             margin-top: 10px;
         }
+        .service-provider-badge {
+            background: #3498db;
+            color: white;
+            padding: 5px 10px;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -115,6 +124,7 @@
                                 <li><%= service %></li>
                             <% }) %>
                         </ul>
+                        <div class="service-provider-badge">Service Provider</div>
 
                         <div class="profile-actions">
                             <button class="btn-view" onclick="viewProfile('<%= provider._id %>')">View Profile</button>
