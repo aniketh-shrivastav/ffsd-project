@@ -5,6 +5,8 @@ const path = require("path");
 const User = require("../models/User");
 const Cart = require("../models/Cart");
 const { getAllProducts, getProductById } = require("../utils/productUtils");
+const CustomerProfile = require('../models/CustomerProfile');
+const mongoose = require("mongoose");
 
 // Middleware
 const isAuthenticated = (req, res, next) => {
@@ -138,8 +140,54 @@ router.get("/payment", customerOnly, (req, res) => {
   res.render("customer/payment");
 });
 
-router.get("/profile", customerOnly, (req, res) => {
-  res.render("customer/profile");
+router.get('/profile',customerOnly, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+
+    // Fetch basic signup details
+    const user = await User.findById(userId);
+
+    // Check for extended profile
+    let profile = await CustomerProfile.findOne({ userId });
+
+    // If profile doesn't exist yet, create an empty placeholder (optional)
+    if (!profile) {
+      profile = {
+        name: user.name,
+        email: user.email, // Optional
+        phone: user.phone,
+        address: '',
+        district: '',
+        carModel: '',
+        payments: ''
+      };
+    }
+
+    res.render('customer/profile', { user, profile });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error loading profile");
+  }
+});
+
+router.post('/profile', async (req, res) => {
+  try {
+    const userId = req.session.user.id; // ✅ define userId first
+
+    const {name, phone, address, district, carModel, payments } = req.body;
+    await User.findByIdAndUpdate(userId, { name, phone }, { new: true });
+    // ✅ Upsert (insert if not found, update if exists)
+    await CustomerProfile.findOneAndUpdate(
+      { userId },
+      { address, district, carModel, payments },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    res.redirect('/customer/profile');
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).send("Error updating profile");
+  }
 });
 
 router.get("/purchase", customerOnly, (req, res) => {
