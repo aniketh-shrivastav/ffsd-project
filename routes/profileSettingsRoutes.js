@@ -18,23 +18,38 @@ const serviceOnly = [isAuthenticated, isService];
 
 router.post("/profile/update", serviceOnly, async (req, res) => {
   try {
-      console.log("Request body received:", req.body); // Debugging
+      console.log("Request body received:", req.body);
 
-      const { name, phone, servicesOffered = [] } = req.body;
+      const { name, phone, district, servicesOffered = [] } = req.body;
       const userId = req.session.user?.id;
 
       if (!userId) {
           return res.status(401).json({ success: false, message: "Unauthorized" });
       }
 
-      // Ensure servicesOffered is an array
-      const servicesArray = typeof servicesOffered === "string"
-          ? servicesOffered.split(",").map(s => s.trim()).filter(Boolean)
-          : Array.isArray(servicesOffered) ? servicesOffered : [];
+      // Ensure servicesOffered is in the format: [{ name: "", cost: 0 }]
+      const servicesArray = Array.isArray(servicesOffered)
+          ? servicesOffered
+              .map(s => {
+                  if (typeof s === "object" && s.name && !isNaN(parseFloat(s.cost))) {
+                      return {
+                          name: s.name.trim(),
+                          cost: parseFloat(s.cost)
+                      };
+                  }
+                  return null;
+              })
+              .filter(Boolean)
+          : [];
 
-      console.log("Processed servicesOffered:", servicesArray); // Debugging
+      console.log("Processed servicesOffered:", servicesArray);
 
-      await User.findByIdAndUpdate(userId, { name, phone, servicesOffered: servicesArray });
+      await User.findByIdAndUpdate(userId, {
+          name,
+          phone,
+          district,
+          servicesOffered: servicesArray
+      });
 
       res.json({ success: true, message: "Profile updated successfully" });
   } catch (error) {

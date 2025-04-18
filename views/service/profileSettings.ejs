@@ -31,6 +31,8 @@
             
             <label>Phone:</label>
             <input type="tel" id="phone" value="<%= user.phone %>" disabled>
+            <label>District:</label>
+            <input type="text" id="district" value="<%= user.district || '' %>" disabled>
 
             <button type="button" class="btn edit-pass-btn" onclick="togglePasswordField()">Edit Password</button>
 
@@ -45,14 +47,16 @@
                 <ul class="service-list" id="serviceList">
                     <% user.servicesOffered.forEach(service => { %>
                         <li class="service-item">
-                            <%= service %> 
+                            <input type="text" class="service-name" value="<%= service.name %>" placeholder="Service name" required>
+                            <input type="number" class="service-cost" value="<%= service.cost %>" placeholder="Cost" required>
                             <button class="delete-btn" onclick="removeService(this)">Delete</button>
                         </li>
                     <% }) %>
                 </ul>
 
                 <div class="service-input-container">
-                    <input type="text" id="newService" placeholder="Add new service">
+                    <input type="text" id="newService" placeholder="New Service Name">
+                    <input type="number" id="newServiceCost" placeholder="Cost">
                     <button type="button" class="btn add-service-btn" onclick="addService()">Add Service</button>
                 </div>
             </div>

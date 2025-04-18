@@ -119,11 +119,13 @@
                         </div>
 
                         <h3>Services Offered:</h3>
-                        <ul>
-                            <% provider.servicesOffered.forEach(service => { %>
-                                <li><%= service %></li>
-                            <% }) %>
-                        </ul>
+                   <ul>
+                      <% provider.servicesOffered.forEach(service => { %>
+                      <li><strong><%= service.name %></strong> - ₹<%= service.cost %></li>
+                      <% }) %>
+                   </ul>
+
+                   <p><strong>District:</strong> <%= provider.district || "Not provided" %></p>
                         <div class="service-provider-badge">Service Provider</div>
 
                         <div class="profile-actions">

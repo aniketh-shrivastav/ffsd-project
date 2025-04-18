@@ -2,6 +2,7 @@ function enableEdit() {
     document.getElementById("name").disabled = false;
     document.getElementById("email").disabled = false;
     document.getElementById("phone").disabled = false;
+    document.getElementById("district").disabled = false;
     document.querySelector(".edit-btn").style.display = "none";
     document.querySelector(".save-btn").style.display = "inline-block";
     document.querySelector(".cancel-btn").style.display = "inline-block";
@@ -18,18 +19,25 @@ function enableEdit() {
 async function saveChanges() {
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
-    
-    // Collect service items from the UI
-    const serviceList = document.querySelectorAll(".service-item");
-    const servicesOffered = Array.from(serviceList).map(li => li.innerText.replace("Delete", "").trim());
+    const district = document.getElementById("district").value.trim();
+
+    // Collect services and costs
+    const serviceItems = document.querySelectorAll(".service-item");
+    const servicesOffered = Array.from(serviceItems).map(item => {
+        return {
+            name: item.querySelector(".service-name").value.trim(),
+            cost: parseFloat(item.querySelector(".service-cost").value.trim()) || 0
+        };
+    });
 
     const data = {
         name,
         phone,
+        district,
         servicesOffered
     };
 
-    console.log("Sending data:", data); // Debugging
+    console.log("Sending data:", data);
 
     try {
         const response = await fetch("/profile/update", {
@@ -58,13 +66,26 @@ function togglePasswordField() {
 }
 
 function addService() {
-    let serviceInput = document.getElementById("newService");
-    if (serviceInput.value.trim() !== "") {
-        let newLi = document.createElement("li");
+    const nameInput = document.getElementById("newService");
+    const costInput = document.getElementById("newServiceCost");
+
+    const name = nameInput.value.trim();
+    const cost = parseFloat(costInput.value.trim());
+
+    if (name && !isNaN(cost)) {
+        const newLi = document.createElement("li");
         newLi.className = "service-item";
-        newLi.innerHTML = `${serviceInput.value} <button class="delete-btn" onclick="removeService(this)">Delete</button>`;
+        newLi.innerHTML = `
+            <input type="text" class="service-name" value="${name}" required>
+            <input type="number" class="service-cost" value="${cost}" required>
+            <button class="delete-btn" onclick="removeService(this)">Delete</button>
+        `;
         document.getElementById("serviceList").appendChild(newLi);
-        serviceInput.value = "";
+
+        nameInput.value = "";
+        costInput.value = "";
+    } else {
+        alert("Please enter both a service name and cost.");
     }
 }
 

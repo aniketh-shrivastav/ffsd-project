@@ -1,5 +1,10 @@
 const mongoose = require("mongoose");
 
+const ServiceSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    cost: { type: Number, required: true }
+}, { _id: false }); // No _id needed for subdocuments
+
 const UserSchema = new mongoose.Schema({
     name: String,
     email: { type: String, unique: true },
@@ -12,7 +17,8 @@ const UserSchema = new mongoose.Schema({
     workshopName: String,
     profilePicture: String,
     address: String,
-    servicesOffered: [String] // New field to store list of services
+    district: String,
+    servicesOffered: [ServiceSchema] // 🆕 Updated to store array of { name, cost }
 });
 
 const User = mongoose.model("User", UserSchema);

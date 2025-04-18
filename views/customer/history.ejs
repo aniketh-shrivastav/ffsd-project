@@ -22,10 +22,60 @@
         <ul id="past-orders" class="parts-list"></ul>
 
         <h2>Upcoming Services</h2>
-        <ul id="upcoming-services" class="parts-list"></ul>
-
+        <ul id="upcoming-services" class="parts-list">
+          <% const upcoming = bookings.filter(b => b.status === 'Open' || b.status === 'Confirmed'); %>
+          <% if (upcoming.length === 0) { %>
+            <p class="no-items">No upcoming services found.</p>
+          <% } else { %>
+            <% upcoming.forEach(service => { %>
+              <li class="history-item">
+                <div class="item-details">
+                  <h3><%= service.selectedServices.join(", ") %></h3>
+                  <p><strong>Service Provider:</strong> <%= service.providerId.name %> | <%= service.providerId.phone %></p>
+                  <p><strong>Booked on:</strong> <%= service.createdAt.toLocaleDateString() %></p>
+                  <p><strong>Car Model:</strong> <%= service.carModel %></p>
+                  <p><strong>Description:</strong> <%= service.description %></p>
+                  <p><strong>Cost:</strong> ₹<%= service.totalCost %></p>
+                  <p><strong>Status:</strong>
+                    <% if (service.status === 'Open') { %>
+                      <span style="color: orange;">Waiting for Confirmation</span>
+                    <% } else { %>
+                      <span style="color: green;">Confirmed</span>
+                    <% } %>
+                  </p>
+                </div>
+              </li>
+            <% }) %>
+          <% } %>
+        </ul>
+        
         <h2>Past Services</h2>
-        <ul id="past-services" class="parts-list"></ul>
+        <ul id="past-services" class="parts-list">
+          <% const past = bookings.filter(b => b.status === 'Ready' || b.status === 'Rejected'); %>
+          <% if (past.length === 0) { %>
+            <p class="no-items">No past services found.</p>
+          <% } else { %>
+            <% past.forEach(service => { %>
+              <li class="history-item">
+                <div class="item-details">
+                  <h3><%= service.selectedServices.join(", ") %></h3>
+                  <p><strong>Service Provider:</strong> <%= service.providerId.name %> | <%= service.providerId.phone %></p>
+                  <p><strong>Booked on:</strong> <%= service.createdAt.toLocaleDateString() %></p>
+                  <p><strong>Car Model:</strong> <%= service.carModel %></p>
+                  <p><strong>Description:</strong> <%= service.description %></p>
+                  <p><strong>Cost:</strong> ₹<%= service.totalCost %></p>
+                  <p><strong>Status:</strong>
+                    <% if (service.status === 'Ready') { %>
+                      <span style="color: green;">Completed</span>
+                    <% } else { %>
+                      <span style="color: red;">Rejected</span>
+                    <% } %>
+                  </p>
+                </div>
+              </li>
+            <% }) %>
+          <% } %>
+        </ul>
     </main>
 
     <footer>

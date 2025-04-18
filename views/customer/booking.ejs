@@ -1,96 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book a Service</title>
-    <link rel="stylesheet" href="/styles/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book a Service</title>
+  <link rel="stylesheet" href="/styles/styles.css">
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <img src="/images/logo.png" alt="AutoCustomizer Logo">
+  <header>
+    <div class="logo">
+      <img src="/images/logo.png" alt="AutoCustomizer Logo">
+    </div>
+    <%- include("../partials/customerHeaders") %>
+  </header>
+
+  <main>
+    <h1>Service Booking</h1>
+    <h2>Select your preferred services</h2>
+
+    <form id="booking-form">
+      <label for="service">Select Services:</label>
+      <select id="service" multiple required size="5">
+        <% uniqueServices.forEach(service => { %>
+          <option value="<%= service %>"><%= service %></option>
+        <% }) %>
+      </select>
+
+      <p id="serviceCostDisplay" style="margin: 10px 0; font-weight: bold;"></p>
+
+      <label for="district">Select District:</label>
+      <select id="district" required>
+        <option value="">Select District</option>
+        <% uniqueDistricts.forEach(d => { %>
+          <option value="<%= d %>"><%= d %></option>
+        <% }) %>
+      </select>
+
+      <label for="date">Select Date:</label>
+      <input type="date" id="date" required>
+
+      <label for="service-provider">Service Provider:</label>
+      <select id="service-provider" required disabled>
+        <option value="">Select Service Provider</option>
+      </select>
+
+      <label for="name">Your Name:</label>
+      <input type="text" id="name" required placeholder="Enter your name">
+
+      <label for="car-model">Car Model:</label>
+      <input type="text" id="car-model" required placeholder="Enter your car model">
+
+      <label for="phone">Phone Number:</label>
+      <input type="tel" id="phone" required placeholder="Enter 10-digit number">
+
+      <label for="address">Address:</label>
+      <textarea id="address" rows="4" placeholder="Enter your address" required></textarea>
+
+      <label for="description">Describe Your Service Needs:</label>
+      <textarea id="description" rows="4" placeholder="Tell us more about your requirements..." required></textarea>
+
+      <button type="submit">Book Now</button>
+    </form>
+
+    <div id="summary-box" style="margin-top: 20px;"></div>
+  </main>
+
+  <footer>
+    <div class="footer-container">
+      <div class="footer-section">
+        <h3>Contact Us</h3>
+        <p>Email: support@autocustomizer.com</p>
+        <p>Phone: +123-456-7890</p>
+        <p>Address: 123 Auto Street, Custom City</p>
+      </div>
+      <div class="footer-section">
+        <h3>Follow Us</h3>
+        <div class="social-icons">
+          <a href="#"><img src="/images/facebook-icon.png" alt="Facebook"></a>
+          <a href="#"><img src="/images/twitter-icon.png" alt="Twitter"></a>
+          <a href="#"><img src="/images/instagram-icon.png" alt="Instagram"></a>
         </div>
-        <%- include("../partials/customerHeaders") %>
-    </header>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 AutoCustomizer. All Rights Reserved.</p>
+    </div>
+  </footer>
 
-    <main>
-        <h1>Service Booking</h1>
-        <h2>Select your preferred services</h2>
-        
-        <form id="booking-form">
-            <label for="service">Service Type:</label>
-            <select id="service" required>
-                <% if (uniqueServices && uniqueServices.length > 0) { %>
-                    <% uniqueServices.forEach(service => { %>
-                        <option value="<%= service %>"><%= service %></option>
-                    <% }) %>
-                <% } else { %>
-                    <option disabled>No services available</option>
-                <% } %>
-            </select>
+  <script>
+    const allProviders = JSON.parse('<%- JSON.stringify(serviceProviders) %>');
+    const serviceCostMap = JSON.parse('<%- serviceCostMap %>');
 
-            <label for="date">Select Date:</label>
-            <input type="date" id="date" required>
+    const serviceSelect = document.getElementById("service");
+    const districtSelect = document.getElementById("district");
+    const providerSelect = document.getElementById("service-provider");
+    const serviceCostDisplay = document.getElementById("serviceCostDisplay");
+    const bookingForm = document.getElementById("booking-form");
+    const summaryBox = document.getElementById("summary-box");
+    const phoneInput = document.getElementById("phone");
+    const nameInput = document.getElementById("name");
+    const carModelInput = document.getElementById("car-model");
+    const addressInput = document.getElementById("address");
 
-            <label for="service-provider">Service Provider:</label>
-            <select id="service-provider" required disabled>
-                <option value="">Select Service Provider</option>
-            </select>
+    function getSelectedServices() {
+      return Array.from(serviceSelect.selectedOptions).map(option => option.value);
+    }
 
-            <label for="phone">Phone Number:</label>
-            <input type="tel" id="phone" required placeholder="Enter 10-digit number">
-            <label for="description">Describe Your Service Needs</label>
-            <textarea id="description" rows="4" placeholder="Tell us more about your requirements..." required></textarea>
+    serviceSelect.addEventListener("change", () => {
+      const selectedServices = getSelectedServices();
+      if (selectedServices.length > 0) {
+        const estimatedCosts = selectedServices.map(s => `₹${serviceCostMap[s] || 'N/A'}`);
+        serviceCostDisplay.innerText = `Estimated Starting Cost(s): ${estimatedCosts.join(", ")}`;
+      } else {
+        serviceCostDisplay.innerText = "";
+      }
+      filterProviders();
+    });
 
-            <button type="submit">Book Now</button>
-        </form>
-    </main>
+    districtSelect.addEventListener("change", filterProviders);
 
-    <footer>
-        <div class="footer-container">
-            <div class="footer-section">
-                <h3>Contact Us</h3>
-                <p>Email: support@autocustomizer.com</p>
-                <p>Phone: +123-456-7890</p>
-                <p>Address: 123 Auto Street, Custom City</p>
-            </div>
-            <div class="footer-section">
-                <h3>Follow Us</h3>
-                <div class="social-icons">
-                    <a href="#"><img src="/images/facebook-icon.png" alt="Facebook"></a>
-                    <a href="#"><img src="/images/twitter-icon.png" alt="Twitter"></a>
-                    <a href="#"><img src="/images/instagram-icon.png" alt="Instagram"></a>
-                </div>
-            </div>
+    function filterProviders() {
+      const selectedServices = getSelectedServices();
+      const selectedDistrict = districtSelect.value;
+
+      if (selectedServices.length === 0 || !selectedDistrict) {
+        providerSelect.innerHTML = '<option value="">Select Service Provider</option>';
+        providerSelect.disabled = true;
+        return;
+      }
+
+      const filtered = allProviders.filter(provider =>
+        provider.district === selectedDistrict &&
+        selectedServices.every(service =>
+          provider.servicesOffered.some(s => s.name === service)
+        )
+      );
+
+      providerSelect.innerHTML = '<option value="">Select Service Provider</option>';
+      filtered.forEach(provider => {
+        providerSelect.innerHTML += `<option value="${provider._id}" data-district="${provider.district}">${provider.name}</option>`;
+      });
+
+      providerSelect.disabled = filtered.length === 0;
+    }
+
+    bookingForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const selectedService = serviceSelect.value;
+      const selectedDistrict = districtSelect.value;
+      const selectedDate = document.getElementById("date").value;
+      const selectedProviderOption = providerSelect.options[providerSelect.selectedIndex];
+      const phone = phoneInput.value;
+      const description = document.getElementById("description").value;
+      const name = nameInput.value;
+      const carModel = carModelInput.value;
+      const address = addressInput.value;
+
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(phone)) {
+        alert("Please enter a valid 10-digit phone number.");
+        return;
+      }
+
+      if (!selectedProviderOption.value) {
+        alert("Please select a service provider.");
+        return;
+      }
+
+      // Show summary
+      summaryBox.innerHTML = `
+        <div>
+          <h3>Booking Summary</h3>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Car Model:</strong> ${carModel}</p>
+          <p><strong>Service:</strong> ${selectedService}</p>
+          <p><strong>Provider:</strong> ${selectedProviderOption.text}</p>
+          <p><strong>District:</strong> ${selectedProviderOption.dataset.district}</p>
+          <p><strong>Date:</strong> ${selectedDate}</p>
+          <p><strong>Estimated Cost:</strong> ₹${selectedProviderOption.dataset.cost}</p>
+          <p><strong>Phone:</strong> ${phone}</p>
+          <p><strong>Address:</strong> ${address}</p>
+          <p><strong>Description:</strong> ${description}</p>
+          <button id="confirm-booking">Confirm Booking</button>
         </div>
-        <div class="footer-bottom">
-            <p>&copy; 2025 AutoCustomizer. All Rights Reserved.</p>
-        </div>
-    </footer>
+      `;
+    });
 
-    <script>
-        const serviceProviders = JSON.parse('<%- JSON.stringify(serviceProviders) %>');
-
-        document.getElementById("service").addEventListener("change", function() {
-            let selectedService = this.value;
-            let providerSelect = document.getElementById("service-provider");
-
-            providerSelect.innerHTML = '<option value="">Select Service Provider</option>';
-
-            if (selectedService && serviceProviders[selectedService]) {
-                serviceProviders[selectedService].forEach(provider => {
-                    let option = document.createElement("option");
-                    option.value = provider;
-                    option.textContent = provider;
-                    providerSelect.appendChild(option);
-                });
-                providerSelect.disabled = false;
-            } else {
-                providerSelect.disabled = true;
-            }
+    document.addEventListener("click", async function (e) {
+      if (e.target && e.target.id === "confirm-booking") {
+        const response = await fetch("/bookings/create-booking", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            providerId: document.getElementById("service-provider").value,
+            selectedServices: Array.from(document.getElementById("service").selectedOptions).map(o => o.value),
+            date: document.getElementById("date").value,
+            phone: document.getElementById("phone").value,
+            name: document.getElementById("name").value,
+            carModel: document.getElementById("car-model").value,
+            address: document.getElementById("address").value,
+            description: document.getElementById("description").value,
+            district: document.getElementById("district").value
+          })
         });
-    </script>
-
+    
+        const result = await response.json();
+        if (response.ok) {
+          alert("Booking successfully submitted!");
+          window.location.href = "/customer/booking"; // or redirect accordingly
+        } else {
+          alert("Error: " + result.error);
+        }
+      }
+    });
+  </script>
 </body>
 </html>
+

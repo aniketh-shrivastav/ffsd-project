@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
+const ServiceBooking = require("../models/serviceBooking");
 
 // Middleware
 const isAuthenticated = (req, res, next) => {
@@ -49,8 +50,73 @@ router.get("/profileSettings", serviceOnly, async (req, res) => {
 });
 
 // Booking Management
-router.get("/bookingManagement", serviceOnly, (req, res) => {
-  res.render("service/bookingManagement");
+// This route handles rendering booking data for the service provider
+router.get("/bookingManagement", serviceOnly, async (req, res) => {
+  try {
+    // Fetch the bookings for the logged-in service provider
+    const providerId = req.session.user.id;
+
+    const bookings = await ServiceBooking.find({ providerId })
+      .populate("customerId", "name email")
+      .sort({ createdAt: -1 })
+      .lean(); // Use lean() so we can easily modify the objects
+
+    // Get the logged-in provider's services with cost
+    const provider = await User.findById(providerId).lean();
+    const serviceMap = {};
+    provider.servicesOffered.forEach(service => {
+      serviceMap[service.name] = service.cost;
+    });
+
+    // Attach totalCost to each booking
+    bookings.forEach(order => {
+      let total = 0;
+      order.selectedServices.forEach(serviceName => {
+        total += serviceMap[serviceName] || 0;
+      });
+      order.totalCost = total;
+    });
+
+    res.render("service/bookingManagement", { bookings });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error loading bookings.");
+  }
+});
+
+router.post('/updateBookingStatus', serviceOnly, async (req, res) => {
+  const { orderId, newStatus } = req.body;
+
+  try {
+    const booking = await ServiceBooking.findById(orderId);
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+
+    booking.status = newStatus;
+    await booking.save();
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error updating booking status:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/updateMultipleBookingStatus', serviceOnly, async (req, res) => {
+  const { orderIds, newStatus } = req.body;
+
+  try {
+    await ServiceBooking.updateMany(
+      { _id: { $in: orderIds } },
+      { $set: { status: newStatus } }
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false });
+  }
 });
 
 // Earnings

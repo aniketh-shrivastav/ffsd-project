@@ -259,3 +259,12 @@ body {
     margin-top: 20px;
     gap: 10px;
 }
+
+.btn-ready {
+    background-color: #4caf50;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}

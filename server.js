@@ -3,7 +3,8 @@ const session = require("express-session");
 const path = require("path");
 const cors = require("cors");
 const connectDB = require("./db");
-const User = require("./models/User"); //Import the User model
+const User = require("./models/User");
+ //Import the User model
 
 const app = express();
 connectDB();
@@ -45,6 +46,7 @@ const { router: contactRoutes } = require("./routes/contactRoutes");
 const sellerRoutes = require("./routes/sellerRoutes");
 const profileSettingsRoutes = require("./routes/profileSettingsRoutes");
 const cartRoutes = require("./routes/cartRoutes");
+const bookingRoutes = require("./routes/bookingRoutes");
 
 app.use("/", profileSettingsRoutes);
 app.use("/", authRoutes);
@@ -54,6 +56,7 @@ app.use("/service", serviceProviderRoutes);
 app.use("/", contactRoutes);
 app.use("/seller", sellerRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/bookings", bookingRoutes);
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true }));
 

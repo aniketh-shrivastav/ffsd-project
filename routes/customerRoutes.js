@@ -7,6 +7,7 @@ const Cart = require("../models/Cart");
 const { getAllProducts, getProductById } = require("../utils/productUtils");
 const CustomerProfile = require('../models/CustomerProfile');
 const mongoose = require("mongoose");
+const ServiceBooking = require("../models/serviceBooking");
 
 // Middleware
 const isAuthenticated = (req, res, next) => {
@@ -39,34 +40,47 @@ router.get("/index", customerOnly, (req, res) => {
 
 router.get("/booking", customerOnly, async (req, res) => {
   try {
+    const customerId = req.session.user.id;
+
+    const customerProfile = await CustomerProfile.findOne({ userId: customerId });
+
     const serviceProvidersData = await User.find(
       { role: "service-provider", suspended: { $ne: true } },
-      "name servicesOffered"
+      "name servicesOffered district cost"
     );
 
-    // Extract unique services and map providers
-    const serviceProviders = {};
     const uniqueServices = new Set();
+    const uniqueDistricts = new Set();
+    const serviceProviders = [];
+    const serviceCostMap = {}; // ✅ Create service cost map
 
     serviceProvidersData.forEach(provider => {
       if (provider.servicesOffered && provider.servicesOffered.length > 0) {
         provider.servicesOffered.forEach(service => {
-          uniqueServices.add(service);
-          if (!serviceProviders[service]) {
-            serviceProviders[service] = [];
+          if (service.name) {
+            uniqueServices.add(service.name);
+            if (!serviceCostMap[service.name]) {
+              serviceCostMap[service.name] = service.cost;
+            }
           }
-          serviceProviders[service].push(provider.name);
         });
+        if (provider.district) uniqueDistricts.add(provider.district);
+        serviceProviders.push(provider);
       }
     });
 
     res.render("customer/booking", {
       uniqueServices: Array.from(uniqueServices),
-      serviceProviders
+      uniqueDistricts: Array.from(uniqueDistricts),
+      serviceProviders,
+      customerProfile,
+      selectedServiceType: "",
+      selectedDistrict: "",
+      serviceCostMap: JSON.stringify(serviceCostMap) // ✅ Add this
     });
   } catch (error) {
-    console.error("Error fetching services:", error);
-    res.status(500).send("Error fetching services");
+    console.error("Error rendering booking page:", error);
+    res.status(500).send("Error loading booking page");
   }
 });
 
@@ -132,8 +146,19 @@ router.post("/cart/add", customerOnly, async (req, res) => {
 });
 
 
-router.get("/history", customerOnly, (req, res) => {
-  res.render("customer/history");
+router.get('/history', customerOnly, async (req, res) => {
+  const customerId = req.session.user.id; // assuming session has user.id
+
+  try {
+    const bookings = await ServiceBooking.find({ customerId })
+      .populate('providerId') // assuming providerId is a ref
+      .sort({ createdAt: -1 });
+
+    res.render('customer/history', { bookings });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
 });
 
 router.get("/payment", customerOnly, (req, res) => {

@@ -36,23 +36,52 @@
             </select>
             <button class="filter-btn">Filter</button>
         </div>
+
         <table class="order-table">
             <thead>
                 <tr>
                     <th></th>
-                    <th>OrderId</th>
+                    <th>Service ID</th>
                     <th>Service</th>
+                    <th>Description</th>
+                    <th>Car Model</th>
                     <th>Customer Name</th>
-                    <th>Customer Id</th>
-                    <th>Amount</th>
+                    <th>Customer email</th>
+                    <th>Phone Number</th>
+                    <th>Address</th>
+                    <th>District</th>
+                    <th>Status</th>
                     <th>Order Sent</th>
-                    <th>Order Expected</th>
-                    <th>Staus</th>
-                   
+                    <th>Total Cost</th> <!-- 🆕 Add this -->
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
-                
+                <% bookings.forEach(order => { %>
+                    <tr>
+                        <td><input type="checkbox" class="order-checkbox" data-order-id="<%= order._id %>"></td>
+                        <td><%= order._id %></td>
+                        <td><%= order.selectedServices.join(", ") %></td>
+                        <td><%= order.description %></td>
+                        <td><%= order.carModel %></td>
+                        <td><%= order.customerId.name %></td>
+                        <td><%= order.customerId.email %></td>
+                        <td><%= order.phone %></td>
+                        <td><%= order.address %></td>
+                        <td><%= order.district %></td>
+                        <td><%= order.status %></td>
+                        <td><%= order.createdAt.toLocaleDateString() %></td>
+                        <td>₹<%= order.totalCost %></td>
+                        <td>
+                            <% if (order.status === 'Confirmed') { %>
+                                <button class="btn btn-ready" data-order-id="<%= order._id %>">Mark as Ready</button>
+                            <% } else { %>
+                                <!-- Optional: show text or leave empty -->
+                                <span>—</span>
+                            <% } %>
+                        </td>
+                    </tr>
+                <% }) %>
             </tbody>
         </table>
 
@@ -61,6 +90,7 @@
             <button class="reject-btn">❌ Reject</button>
         </div>
     </div>
+
     <script src="/scripts/bookingManagement.js"></script>
 </body>
 </html>
