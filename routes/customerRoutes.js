@@ -147,14 +147,35 @@ router.post("/cart/add", customerOnly, async (req, res) => {
 
 
 router.get('/history', customerOnly, async (req, res) => {
-  const customerId = req.session.user.id; // assuming session has user.id
+  const customerId = req.session.user.id;
 
   try {
     const bookings = await ServiceBooking.find({ customerId })
-      .populate('providerId') // assuming providerId is a ref
+      .populate('providerId') // providerId should bring in servicesOffered
       .sort({ createdAt: -1 });
 
-    res.render('customer/history', { bookings });
+    const enrichedBookings = bookings.map(booking => {
+      const provider = booking.providerId;
+      const servicesOffered = provider?.servicesOffered || [];
+
+      // Create a cost map from provider's servicesOffered
+      const costMap = {};
+      servicesOffered.forEach(s => {
+        costMap[s.name] = s.cost;
+      });
+
+      // Calculate total cost based on the provider's current prices
+      const totalCost = (booking.selectedServices || []).reduce((sum, service) => {
+        return sum + (costMap[service] || 0); // If service not found, add 0
+      }, 0);
+
+      return {
+        ...booking.toObject(),
+        totalCost
+      };
+    });
+
+    res.render('customer/history', { bookings: enrichedBookings });
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');

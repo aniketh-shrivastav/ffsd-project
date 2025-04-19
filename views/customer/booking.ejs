@@ -136,9 +136,17 @@
         )
       );
 
-      providerSelect.innerHTML = '<option value="">Select Service Provider</option>';
       filtered.forEach(provider => {
-        providerSelect.innerHTML += `<option value="${provider._id}" data-district="${provider.district}">${provider.name}</option>`;
+        let totalCost = 0;
+        const matchedServices = provider.servicesOffered.filter(s => selectedServices.includes(s.name));
+        matchedServices.forEach(s => {
+          totalCost += serviceCostMap[s.name] || 0;
+        });
+      
+        providerSelect.innerHTML += `
+          <option value="${provider._id}" data-district="${provider.district}" data-cost="${totalCost}">
+            ${provider.name}
+          </option>`;
       });
 
       providerSelect.disabled = filtered.length === 0;
