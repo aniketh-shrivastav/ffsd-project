@@ -2,190 +2,85 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Orders & Bookings</title>
+  <title>Order & Booking Oversight</title>
   <link rel="stylesheet" href="/styles/admin-consistent.css">
+  <style>
+    .tab-active { background-color: #007bff; color: #fff; }
+    .hidden { display: none; }
+    .btn-cancel { background: #ff4444; color: white; border: none; padding: 5px 10px; cursor: pointer; }
+  </style>
 </head>
 <body>
-
-  <!-- Navbar -->
   <div class="navbar">
     <div class="logo"><h2>Manager's Panel</h2></div>
     <%- include("../partials/managerHeader") %>
   </div>
 
-  <!-- Main -->
   <div class="main-content">
     <h1>Order & Booking Oversight</h1>
 
-    <!-- Search -->
-    <div class="search-bar" style="margin-bottom: 1.5rem;">
-      <input type="text" id="searchInput" placeholder="Search orders..." />
-      <button class="tab-btn">Filter</button>
+    <!-- Tabs -->
+    <div style="margin-bottom: 1rem;">
+      <button class="tab-btn tab-active" onclick="showTab('orders')">Orders</button>
+      <button class="tab-btn" onclick="showTab('services')">Services Booked</button>
     </div>
 
-    <!-- Stats -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h3>Active Orders</h3>
-        <div class="number" id="activeOrders">0</div>
-      </div>
-      <div class="stat-card">
-        <h3>Pending</h3>
-        <div class="number" id="pendingOrders">0</div>
-      </div>
-      <div class="stat-card">
-        <h3>Disputes</h3>
-        <div class="number" id="disputeOrders">0</div>
-      </div>
+    <!-- Orders (Empty for now) -->
+    <div id="ordersTab">
+      <p>No order data available yet.</p>
     </div>
 
-    <!-- Table -->
-    <div class="table-container" style="margin-top: 2rem;">
-      <table class="order-table">
-        <thead>
-          <tr>
-            <th>Order ID</th>
-            <th>Customer</th>
-            <th>Service/Product</th>
-            <th>Amount</th>
-            <th>Status</th>
-            <th>Date</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="orderTableBody">
-          <!-- Dynamic Content -->
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Modal -->
-  <div id="orderModal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      
-      <div id="modalContent"></div>
-    </div>
+   <!-- Services Booked -->
+<div id="servicesTab" class="hidden">
+  <table class="order-table">
+    <thead>
+      <tr>
+        <th>Service ID</th>
+        <th>Service Type</th>
+        <th>Description</th>
+        <th>Customer</th>
+        <th>Provider</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% bookings.forEach(b => { %>
+        <tr>
+          <td><%= b._id %></td>
+          <td><%= b.selectedServices.join(", ") %></td>
+          <td><%= b.description %></td>
+          <td><%= b.customerId?.name %> (<%= b.customerId?.email %>)</td>
+          <td><%= b.providerId?.name %> (<%= b.providerId?.email %>)</td>
+          <td><%= b.status %></td>
+          <td>
+            <% if (b.status !== 'rejected-by-admin') { %>
+              <form action="/manager/cancel-booking/<%= b._id %>" method="POST" onsubmit="return confirm('Cancel this service?')">
+                <button type="submit" class="btn-cancel">Cancel</button>
+              </form>
+            <% } else { %>
+              <span style="color: red;">Rejected</span>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
   </div>
 
   <script>
-    const orders = [
-    {
-      id: "ORD-1001",
-      customer: "Ananya Mehta",
-      service: "Custom Alloy Wheels",
-      amount: 1200.00,
-      status: "completed",
-      date: "2025-03-12"
-    },
-    {
-      id: "ORD-1002",
-      customer: "Rohit Khanna",
-      service: "Ceramic Coating",
-      amount: 2200.00,
-      status: "pending",
-      date: "2025-03-13"
-    },
-    {
-      id: "ORD-1003",
-      customer: "Meera Rao",
-      service: "Interior LED Setup",
-      amount: 800.00,
-      status: "disputed",
-      date: "2025-03-11"
-    },
-    {
-      id: "ORD-1004",
-      customer: "Karan Patel",
-      service: "Performance Exhaust Installation",
-      amount: 3500.00,
-      status: "completed",
-      date: "2025-03-10"
-    },
-    {
-      id: "ORD-1005",
-      customer: "Priya Sharma",
-      service: "Custom Seat Upholstery",
-      amount: 1750.00,
-      status: "pending",
-      date: "2025-03-14"
-    }
-  ];
+    function showTab(tab) {
+      document.querySelector('.tab-btn.tab-active').classList.remove('tab-active');
+      const tabs = { orders: 'ordersTab', services: 'servicesTab' };
 
-    const orderTableBody = document.getElementById('orderTableBody');
-    const searchInput = document.getElementById('searchInput');
-    const modal = document.getElementById('orderModal');
-    const modalContent = document.getElementById('modalContent');
-    const closeModal = document.querySelector('.close');
-
-    function updateStats() {
-      const stats = { completed: 0, pending: 0, disputed: 0 };
-      orders.forEach(o => stats[o.status]++);
-      document.getElementById('activeOrders').textContent = stats.completed;
-      document.getElementById('pendingOrders').textContent = stats.pending;
-      document.getElementById('disputeOrders').textContent = stats.disputed;
-    }
-
-    function renderOrders(data = orders) {
-      orderTableBody.innerHTML = '';
-      data.forEach(order => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${order.id}</td>
-          <td>${order.customer}</td>
-          <td>${order.service}</td>
-          <td>₹${order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-          <td><span class="status status-${order.status}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span></td>
-          <td>${new Date(order.date).toLocaleDateString()}</td>
-          <td>
-            <button class="btn btn-view" onclick="viewOrder('${order.id}')">View</button>
-            ${order.status === 'disputed' ? `<button class="btn btn-resolve" onclick="resolveDispute('${order.id}')">Resolve</button>` : ''}
-          </td>
-        `;
-        orderTableBody.appendChild(row);
-      });
-    }
-
-    function viewOrder(orderId) {
-  const order = orders.find(o => o.id === orderId);
-  if (order) {
-    alert(
-      `Order ID: ${order.id}\n` +
-      `Customer: ${order.customer}\n` +
-      `Service: ${order.service}\n` +
-      `Amount: ₹${order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}\n` +
-      `Status: ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}\n` +
-      `Date: ${new Date(order.date).toLocaleDateString()}`
-    );
-  }
-}
-
-    function resolveDispute(orderId) {
-      const idx = orders.findIndex(o => o.id === orderId);
-      if (idx !== -1) {
-        orders[idx].status = 'completed';
-        updateStats();
-        renderOrders();
+      for (const key in tabs) {
+        document.getElementById(tabs[key]).classList.toggle('hidden', key !== tab);
       }
+
+      const buttons = document.querySelectorAll('.tab-btn');
+      buttons[tab === 'orders' ? 0 : 1].classList.add('tab-active');
     }
-
-    closeModal.onclick = () => modal.style.display = 'none';
-    window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
-
-    searchInput.addEventListener('input', e => {
-      const term = e.target.value.toLowerCase();
-      const filtered = orders.filter(o =>
-        o.id.toLowerCase().includes(term) ||
-        o.customer.toLowerCase().includes(term) ||
-        o.service.toLowerCase().includes(term)
-      );
-      renderOrders(filtered);
-    });
-
-    updateStats();
-    renderOrders();
   </script>
 </body>
 </html>

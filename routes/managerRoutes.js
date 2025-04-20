@@ -4,6 +4,7 @@ const path = require("path");
 const fs = require("fs");
 const User = require("../models/User"); // Import User model
 const SellerProfile = require("../models/sellerProfile");
+const ServiceBooking = require("../models/serviceBooking");
 
 // Middleware
 const isAuthenticated = (req, res, next) => {
@@ -48,8 +49,18 @@ router.get("/dashboard", isAuthenticated, isManager, async (req, res) => {
   }
 });
 
-router.get("/orders", isAuthenticated, isManager, (req, res) => {
-  res.render("manager/orders");
+router.get('/orders', isAuthenticated, isManager, async (req, res) => {
+  try {
+    const bookings = await ServiceBooking.find()
+      .populate('customerId')
+      .populate('providerId')
+      .sort({ createdAt: -1 });
+
+    res.render('manager/orders', { bookings });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error loading bookings');
+  }
 });
 
 router.get("/payments", isAuthenticated, isManager, (req, res) => {
@@ -127,6 +138,18 @@ router.post("/users/suspend/:id", async (req, res) => {
   } catch (error) {
     console.error("Error suspending user:", error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+router.post('/cancel-booking/:id', isAuthenticated, isManager, async (req, res) => {
+  try {
+    await ServiceBooking.findByIdAndUpdate(req.params.id, {
+      status: 'rejected-by-admin'
+    });
+    res.redirect('/manager/orders');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error cancelling booking');
   }
 });
 

@@ -19,15 +19,7 @@
     <h2>Select your preferred services</h2>
 
     <form id="booking-form">
-      <label for="service">Select Services:</label>
-      <select id="service" multiple required size="5">
-        <% uniqueServices.forEach(service => { %>
-          <option value="<%= service %>"><%= service %></option>
-        <% }) %>
-      </select>
-
-      <p id="serviceCostDisplay" style="margin: 10px 0; font-weight: bold;"></p>
-
+      <!-- Step 1: Select District -->
       <label for="district">Select District:</label>
       <select id="district" required>
         <option value="">Select District</option>
@@ -35,14 +27,22 @@
           <option value="<%= d %>"><%= d %></option>
         <% }) %>
       </select>
-
-      <label for="date">Select Date:</label>
-      <input type="date" id="date" required>
-
+    
+      <!-- Step 2: Service Provider (Populated based on District) -->
       <label for="service-provider">Service Provider:</label>
       <select id="service-provider" required disabled>
         <option value="">Select Service Provider</option>
       </select>
+    
+      <!-- Step 3: Services offered by the selected provider -->
+      <label for="service">Select Services:</label>
+      <select id="service" multiple required size="5" disabled>
+        <!-- Populated dynamically -->
+      </select>
+      <p id="serviceCostDisplay" style="margin: 10px 0; font-weight: bold;"></p>
+
+      <label for="date">Select Date:</label>
+      <input type="date" id="date" required>
 
       <label for="name">Your Name:</label>
       <input type="text" id="name" required placeholder="Enter your name">
@@ -90,23 +90,24 @@
   <script>
     const allProviders = JSON.parse('<%- JSON.stringify(serviceProviders) %>');
     const serviceCostMap = JSON.parse('<%- serviceCostMap %>');
-
+  
     const serviceSelect = document.getElementById("service");
     const districtSelect = document.getElementById("district");
     const providerSelect = document.getElementById("service-provider");
     const serviceCostDisplay = document.getElementById("serviceCostDisplay");
     const bookingForm = document.getElementById("booking-form");
     const summaryBox = document.getElementById("summary-box");
+  
     const phoneInput = document.getElementById("phone");
     const nameInput = document.getElementById("name");
     const carModelInput = document.getElementById("car-model");
     const addressInput = document.getElementById("address");
-
+  
     function getSelectedServices() {
       return Array.from(serviceSelect.selectedOptions).map(option => option.value);
     }
-
-    serviceSelect.addEventListener("change", () => {
+  
+    function updateCostDisplay() {
       const selectedServices = getSelectedServices();
       if (selectedServices.length > 0) {
         const estimatedCosts = selectedServices.map(s => `₹${serviceCostMap[s] || 'N/A'}`);
@@ -114,79 +115,109 @@
       } else {
         serviceCostDisplay.innerText = "";
       }
-      filterProviders();
-    });
-
-    districtSelect.addEventListener("change", filterProviders);
-
-    function filterProviders() {
-      const selectedServices = getSelectedServices();
+    }
+  
+    // Step 1: Select district → Show providers
+    districtSelect.addEventListener("change", () => {
       const selectedDistrict = districtSelect.value;
-
-      if (selectedServices.length === 0 || !selectedDistrict) {
-        providerSelect.innerHTML = '<option value="">Select Service Provider</option>';
+  
+      providerSelect.innerHTML = '<option value="">Select Service Provider</option>';
+      serviceSelect.innerHTML = "";
+      serviceSelect.disabled = true;
+      serviceCostDisplay.innerText = "";
+  
+      if (!selectedDistrict) {
         providerSelect.disabled = true;
         return;
       }
-
-      const filtered = allProviders.filter(provider =>
-        provider.district === selectedDistrict &&
-        selectedServices.every(service =>
-          provider.servicesOffered.some(s => s.name === service)
-        )
-      );
-
-      filtered.forEach(provider => {
-        let totalCost = 0;
-        const matchedServices = provider.servicesOffered.filter(s => selectedServices.includes(s.name));
-        matchedServices.forEach(s => {
-          totalCost += serviceCostMap[s.name] || 0;
-        });
-      
+  
+      const filteredProviders = allProviders.filter(p => p.district === selectedDistrict);
+      filteredProviders.forEach(provider => {
         providerSelect.innerHTML += `
-          <option value="${provider._id}" data-district="${provider.district}" data-cost="${totalCost}">
+          <option value="${provider._id}" data-name="${provider.name}">
             ${provider.name}
-          </option>`;
+          </option>
+        `;
       });
-
-      providerSelect.disabled = filtered.length === 0;
-    }
-
+  
+      providerSelect.disabled = filteredProviders.length === 0;
+    });
+  
+    // Step 2: Select provider → Show services
+    providerSelect.addEventListener("change", () => {
+      const providerId = providerSelect.value;
+      const provider = allProviders.find(p => p._id === providerId);
+  
+      serviceSelect.innerHTML = "";
+      serviceSelect.disabled = true;
+      serviceCostDisplay.innerText = "";
+  
+      if (!provider) return;
+  
+      provider.servicesOffered.forEach(service => {
+        serviceSelect.innerHTML += `
+          <option value="${service.name}">${service.name}</option>
+        `;
+      });
+  
+      serviceSelect.disabled = false;
+    });
+  
+    // Step 3: Services selected → Show cost
+    serviceSelect.addEventListener("change", updateCostDisplay);
+  
+    // Form submission (Step 4)
     bookingForm.addEventListener("submit", function (e) {
       e.preventDefault();
-
-      const selectedService = serviceSelect.value;
+  
+      const selectedServices = getSelectedServices();
       const selectedDistrict = districtSelect.value;
       const selectedDate = document.getElementById("date").value;
       const selectedProviderOption = providerSelect.options[providerSelect.selectedIndex];
-      const phone = phoneInput.value;
-      const description = document.getElementById("description").value;
-      const name = nameInput.value;
-      const carModel = carModelInput.value;
-      const address = addressInput.value;
-
+      const phone = phoneInput.value.trim();
+      const description = document.getElementById("description").value.trim();
+      const name = nameInput.value.trim();
+      const carModel = carModelInput.value.trim();
+      const address = addressInput.value.trim();
+  
       const phoneRegex = /^\d{10}$/;
       if (!phoneRegex.test(phone)) {
         alert("Please enter a valid 10-digit phone number.");
         return;
       }
-
-      if (!selectedProviderOption.value) {
+  
+      if (!selectedProviderOption || !selectedProviderOption.value) {
         alert("Please select a service provider.");
         return;
       }
-
-      // Show summary
+  
+      if (!selectedDate) {
+        alert("Please select a date for the booking.");
+        return;
+      }
+  
+      if (!name || !carModel || !address) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+  
+      // Calculate total cost
+      let totalCost = 0;
+      selectedServices.forEach(s => {
+        totalCost += serviceCostMap[s] || 0;
+      });
+  
+      // Show booking summary
       summaryBox.innerHTML = `
         <div>
           <h3>Booking Summary</h3>
           <p><strong>Name:</strong> ${name}</p>
           <p><strong>Car Model:</strong> ${carModel}</p>
-          <p><strong>Service:</strong> ${selectedService}</p>
+          <p><strong>Services:</strong> ${selectedServices.join(", ")}</p>
           <p><strong>Provider:</strong> ${selectedProviderOption.text}</p>
-          <p><strong>District:</strong> ${selectedProviderOption.dataset.district}</p>
+          <p><strong>District:</strong> ${selectedDistrict}</p>
           <p><strong>Date:</strong> ${selectedDate}</p>
-          <p><strong>Estimated Cost:</strong> ₹${selectedProviderOption.dataset.cost}</p>
+          <p><strong>Estimated Cost:</strong> ₹${totalCost}</p>
           <p><strong>Phone:</strong> ${phone}</p>
           <p><strong>Address:</strong> ${address}</p>
           <p><strong>Description:</strong> ${description}</p>
@@ -194,29 +225,30 @@
         </div>
       `;
     });
-
+  
+    // Confirm booking
     document.addEventListener("click", async function (e) {
       if (e.target && e.target.id === "confirm-booking") {
         const response = await fetch("/bookings/create-booking", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            providerId: document.getElementById("service-provider").value,
-            selectedServices: Array.from(document.getElementById("service").selectedOptions).map(o => o.value),
+            providerId: providerSelect.value,
+            selectedServices: getSelectedServices(),
             date: document.getElementById("date").value,
-            phone: document.getElementById("phone").value,
-            name: document.getElementById("name").value,
-            carModel: document.getElementById("car-model").value,
-            address: document.getElementById("address").value,
-            description: document.getElementById("description").value,
-            district: document.getElementById("district").value
+            phone: phoneInput.value.trim(),
+            name: nameInput.value.trim(),
+            carModel: carModelInput.value.trim(),
+            address: addressInput.value.trim(),
+            description: document.getElementById("description").value.trim(),
+            district: districtSelect.value
           })
         });
-    
+  
         const result = await response.json();
         if (response.ok) {
           alert("Booking successfully submitted!");
-          window.location.href = "/customer/booking"; // or redirect accordingly
+          window.location.href = "/customer/booking";
         } else {
           alert("Error: " + result.error);
         }
