@@ -53,28 +53,28 @@ router.get("/profileSettings", serviceOnly, async (req, res) => {
 // This route handles rendering booking data for the service provider
 router.get("/bookingManagement", serviceOnly, async (req, res) => {
   try {
-    // Fetch the bookings for the logged-in service provider
     const providerId = req.session.user.id;
 
     const bookings = await ServiceBooking.find({ providerId })
       .populate("customerId", "name email")
       .sort({ createdAt: -1 })
-      .lean(); // Use lean() so we can easily modify the objects
+      .lean();
 
-    // Get the logged-in provider's services with cost
+    // Only calculate totalCost if it's missing
     const provider = await User.findById(providerId).lean();
     const serviceMap = {};
     provider.servicesOffered.forEach(service => {
       serviceMap[service.name] = service.cost;
     });
 
-    // Attach totalCost to each booking
     bookings.forEach(order => {
-      let total = 0;
-      order.selectedServices.forEach(serviceName => {
-        total += serviceMap[serviceName] || 0;
-      });
-      order.totalCost = total;
+      if (!order.totalCost || order.totalCost === 0) {
+        let total = 0;
+        order.selectedServices.forEach(serviceName => {
+          total += serviceMap[serviceName] || 0;
+        });
+        order.totalCost = total;
+      }
     });
 
     res.render("service/bookingManagement", { bookings });
@@ -141,6 +141,43 @@ router.delete("/profile/delete/:id", async (req, res) => {
   } catch (error) {
       console.error("Error deleting account:", error);
       res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+router.put('/updateBooking', serviceOnly, async (req, res) => {
+  const { orderId, status, totalCost } = req.body;
+
+  try {
+    const booking = await ServiceBooking.findById(orderId);
+    if (!booking) return res.status(404).send('Booking not found');
+
+    if (status) booking.status = status;
+    if (typeof totalCost !== 'undefined') booking.totalCost = Number(totalCost);
+
+    await booking.save();
+    res.status(200).send('Booking updated successfully');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error updating booking');
+  }
+});
+
+// Add this in your service routes
+router.post('/updateCost/:id', serviceOnly, async (req, res) => {
+  const { id } = req.params;
+  const { totalCost } = req.body;
+
+  try {
+    const booking = await ServiceBooking.findById(id);
+    if (!booking) return res.status(404).send('Booking not found');
+
+    booking.totalCost = Number(totalCost);
+    await booking.save();
+
+    res.redirect('/service/bookingManagement');
+  } catch (error) {
+    console.error("Cost update failed:", error);
+    res.status(500).send('Failed to update cost');
   }
 });
 

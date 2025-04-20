@@ -268,3 +268,11 @@ body {
     border-radius: 4px;
     cursor: pointer;
 }
+
+.cost-input {
+    padding: 4px;
+    font-size: 14px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}

@@ -71,7 +71,22 @@
                         <td><%= order.district %></td>
                         <td><%= order.status %></td>
                         <td><%= order.createdAt.toLocaleDateString() %></td>
-                        <td>₹<%= order.totalCost %></td>
+                        <td>
+                            <% if (order.status === 'Open') { %>
+                              <form action="/service/updateCost/<%= order._id %>" method="POST">
+                                <input 
+                                  type="number" 
+                                  name="totalCost" 
+                                  value="<%= order.totalCost %>" 
+                                  min="0" 
+                                  required 
+                                  style="width: 80px;">
+                                <button type="submit" style="padding: 2px 5px;">💾</button>
+                              </form>
+                            <% } else { %>
+                              ₹<%= order.totalCost %>
+                            <% } %>
+                          </td>
                         <td>
                             <% if (order.status === 'Confirmed') { %>
                                 <button class="btn btn-ready" data-order-id="<%= order._id %>">Mark as Ready</button>
@@ -92,5 +107,94 @@
     </div>
 
     <script src="/scripts/bookingManagement.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Make cost editable
+            /*document.querySelectorAll('.order-table tbody tr').forEach(row => {
+                const costCell = row.children[12]; // 13th column (index starts from 0)
+                const originalCost = costCell.innerText.replace('₹', '').trim();
+                
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.value = originalCost;
+                input.min = 0;
+                input.className = 'cost-input';
+                input.style.width = '80px';
+                
+                costCell.innerHTML = '';
+                costCell.appendChild(input);*/
+            });
+        
+            // Handle "Confirm" and "Reject" buttons
+            document.querySelector('.confirm-btn').addEventListener('click', () => handleAction('Confirmed'));
+            document.querySelector('.reject-btn').addEventListener('click', () => handleAction('Rejected'));
+        
+            // Handle "Mark as Ready" buttons
+            document.querySelectorAll('.btn-ready').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const orderId = button.getAttribute('data-order-id');
+                    await updateStatus(orderId, 'Ready');
+                    location.reload(); // reload to reflect changes
+                });
+            });
+        
+            async function handleAction(newStatus) {
+                const selectedCheckboxes = document.querySelectorAll('.order-checkbox:checked');
+                if (selectedCheckboxes.length === 0) {
+                    alert('Please select at least one order.');
+                    return;
+                }
+        
+                for (const checkbox of selectedCheckboxes) {
+                    const orderId = checkbox.getAttribute('data-order-id');
+                    const row = checkbox.closest('tr');
+                    const costInput = row.querySelector('.cost-input');
+                    const updatedCost = costInput.value;
+        
+                    await updateBooking(orderId, newStatus, updatedCost);
+                }
+        
+                alert('Orders updated successfully!');
+                location.reload();
+            }
+        
+            async function updateBooking(orderId, status, totalCost) {
+                try {
+                    const response = await fetch('/service/updateBooking', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ orderId, status, totalCost })
+                    });
+        
+                    if (!response.ok) {
+                        throw new Error('Failed to update booking.');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert('Error updating booking.');
+                }
+            }
+        
+            async function updateStatus(orderId, status) {
+                try {
+                    const response = await fetch('/service/updateBooking', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ orderId, status })
+                    });
+        
+                    if (!response.ok) {
+                        throw new Error('Failed to update booking.');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert('Error updating booking.');
+                }
+            };
+        </script>
 </body>
 </html>

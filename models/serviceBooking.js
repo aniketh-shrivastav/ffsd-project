@@ -12,9 +12,13 @@ const ServiceBookingSchema = new mongoose.Schema({
   address: { type: String, required: true },
   description: { type: String, required: true },
   district: { type: String, required: true },
+  totalCost: {
+    type: Number,
+    required: false, // make optional for backward compatibility
+  },
   status: {
     type: String,
-    enum: ["Open", "Confirmed", "Ready", "Rejected", "rejected-by-admin"],
+    enum: ["Open", "Confirmed", "Ready", "Rejected"],
     default: "Open"
   },
   createdAt: { type: Date, default: Date.now }

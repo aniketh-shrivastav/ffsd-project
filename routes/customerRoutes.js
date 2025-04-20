@@ -158,16 +158,19 @@ router.get('/history', customerOnly, async (req, res) => {
       const provider = booking.providerId;
       const servicesOffered = provider?.servicesOffered || [];
 
-      // Create a cost map from provider's servicesOffered
+      // Build a cost map from the provider's current service prices
       const costMap = {};
       servicesOffered.forEach(s => {
         costMap[s.name] = s.cost;
       });
 
-      // Calculate total cost based on the provider's current prices
-      const totalCost = (booking.selectedServices || []).reduce((sum, service) => {
-        return sum + (costMap[service] || 0); // If service not found, add 0
-      }, 0);
+      // ✅ Use saved cost if it exists and is valid
+      let totalCost = booking.totalCost;
+      if (!totalCost || totalCost === 0) {
+        totalCost = (booking.selectedServices || []).reduce((sum, service) => {
+          return sum + (costMap[service] || 0); // fallback if service not found
+        }, 0);
+      }
 
       return {
         ...booking.toObject(),

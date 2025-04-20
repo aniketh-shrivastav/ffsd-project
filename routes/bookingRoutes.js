@@ -18,8 +18,22 @@ router.post("/create-booking", async (req, res) => {
       district
     } = req.body;
 
-    // Assume customer is authenticated and their ID is available via middleware/session
     const customerId = req.session.user.id;
+
+    // Fetch provider to access service cost
+    const provider = await User.findById(providerId);
+    if (!provider || !provider.servicesOffered) {
+      return res.status(400).json({ error: "Invalid service provider" });
+    }
+
+    // Calculate totalCost from selected services
+    let totalCost = 0;
+    selectedServices.forEach(serviceName => {
+      const matchedService = provider.servicesOffered.find(s => s.name === serviceName);
+      if (matchedService) {
+        totalCost += matchedService.cost;
+      }
+    });
 
     const booking = new ServiceBooking({
       customerId,
@@ -31,7 +45,8 @@ router.post("/create-booking", async (req, res) => {
       carModel,
       address,
       description,
-      district
+      district,
+      totalCost // ✅ Save the calculated cost
     });
 
     await booking.save();
