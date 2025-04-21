@@ -4,12 +4,18 @@ const path = require("path");
 const fs = require("fs");
 const User = require("../models/User");
 const SellerProfile = require("../models/sellerProfile");
+const multer = require("multer");
+const { storage } = require("../config/cloudinaryConfig");
+const upload = multer({ storage });
+const Product = require("../models/Product");
+
 
 // Middleware to ensure seller access only
 const isAuthenticated = (req, res, next) => {
-    if (req.session.user) return next();
-    res.redirect("/login");
-  };
+  if (req.session.user) return next();
+  res.redirect("/login");
+};
+
 
 const isSeller = (req, res, next) => {
   if (req.session.user?.role === "seller") return next();
@@ -132,7 +138,6 @@ router.post("/request-payout", isAuthenticated, isSeller, (req, res) => {
   if (!amount || isNaN(amount) || amount <= 0) {
     return res.status(400).send("Invalid payout amount");
   }
-  console.log(`Payout request submitted: $${amount}`);
   res.redirect("/seller/earnings-payouts");
 });
 
@@ -175,24 +180,63 @@ function calculateAverageRating(reviews) {
 // Product Management
 let products1 = [];
 
-router.get("/productmanagement", isAuthenticated, isSeller, (req, res) => {
-  res.render("Seller/productManagement", { products1 });
+// Assuming this is in routes/seller.js
+
+router.post('/add-product', isAuthenticated, isSeller, upload.single('image'),async (req, res) => {
+  try {
+    const {
+      name,
+      price,
+      description,
+      category,
+      brand,
+      quantity,
+      sku,
+      compatibility,
+    } = req.body;
+
+    let imageUrl = '';
+
+    // Upload image to Cloudinary if image is uploaded
+    if (req.file) {
+      imageUrl = req.file.path;
+    }
+
+    // Assuming you’re using Sequelize/Mongoose/whatever ORM or direct MongoDB
+    const newProduct = await Product.create({
+      name,
+      price,
+      description,
+      category,
+      brand,
+      quantity,
+      sku,
+      compatibility,
+      seller: req.session.user.id,
+      image: imageUrl 
+    });
+    
+    await newProduct.save();
+    // ✅ Redirect to product management page
+    res.redirect('/Seller/productmanagement');
+  } catch (err) {
+    console.error('Error adding product:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
-router.post("/add-product", isAuthenticated, isSeller, (req, res) => {
-  const { name, price, description, category, brand, quantity, sku } = req.body;
-  const product = {
-    id: Date.now(),
-    name,
-    price,
-    description,
-    category,
-    brand,
-    quantity,
-    sku
-  };
-  products1.push(product);
-  res.redirect("/Seller/productmanagement");
+// Show only products added by the logged-in seller
+router.get("/productmanagement", isAuthenticated, isSeller, async (req, res) => {
+  try {
+    const sellerId = req.session.user.id; // Assuming req.user is set by your authentication middleware
+
+    const products1 = await Product.find({ seller: sellerId });
+
+    res.render("Seller/productmanagement", { products1 });
+  } catch (err) {
+    console.error("Error fetching products for seller:", err);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 router.post("/delete-product/:id", isAuthenticated, isSeller, (req, res) => {

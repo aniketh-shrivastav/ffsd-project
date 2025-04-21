@@ -1,12 +1,14 @@
+<!-- productManagement.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Product Management</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  <link href="/Css/CStyle.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <link href="/Css/CStyle.css" rel="stylesheet"/>
   <style>
+
   /* General Styles */
 body {
     font-family: 'Poppins', sans-serif;
@@ -295,12 +297,12 @@ footer p {
 <body>
 
   <%- include('../partials/navbar') %>
-  
+
   <div class="container">
     <h1>Product Management</h1>
 
     <!-- Product Input Form -->
-    <form action="/Seller/add-product" method="POST" class="product-form" id="productForm">
+    <form action="/Seller/add-product" method="POST" enctype="multipart/form-data" class="product-form" id="productForm">
       <div class="form-group">
         <label for="productName">Product Name:</label>
         <input type="text" id="productName" name="name" required>
@@ -329,6 +331,25 @@ footer p {
         <label for="productSKU">Product SKU:</label>
         <input type="text" id="productSKU" name="sku" maxlength="6" required>
       </div>
+
+      <!-- Compatibility Field -->
+      <div class="form-group">
+        <label for="compatibility">Compatibility</label>
+        <input
+          type="text"
+          class="form-control"
+          id="compatibility"
+          name="compatibility"
+          placeholder="Enter compatible devices or models"
+        />
+      </div>
+
+      <!-- Product Image Upload -->
+      <div class="form-group">
+        <label for="productImage">Product Image:</label>
+        <input type="file" id="productImage" name="image" accept="image/*" required />
+      </div>
+
       <button type="submit" class="btn-add">Add Product</button>
     </form>
 
@@ -347,6 +368,9 @@ footer p {
                 <p><strong>Brand:</strong> <%= product.brand %></p>
                 <p><strong>Quantity:</strong> <%= product.quantity %></p>
                 <p><strong>SKU:</strong> <%= product.sku %></p>
+                <% if (product.imageUrl) { %>
+                  <img src="<%= product.imageUrl %>" alt="Product Image" style="width: 100%; border-radius: 8px; margin-top: 10px;" />
+                <% } %>
               </div>
               <form action="/Seller/delete-product/<%= product.id %>" method="POST">
                 <button type="submit" class="btn-delete">Delete</button>
@@ -363,58 +387,51 @@ footer p {
   <!-- Form Validation Script -->
   <script>
     document.getElementById('productForm').addEventListener('submit', function (event) {
-      // Prevent form submission if validation fails
       if (!validateForm()) {
         event.preventDefault();
       }
     });
 
     function validateForm() {
-    const fields = [
+      const fields = [
         document.getElementById('productName'),
         document.getElementById('productCategory'),
         document.getElementById('productBrand'),
         document.getElementById('productDescription'),
         document.getElementById('productSKU')
-    ];
+      ];
 
-    // Trim and check if any field is empty or only contains spaces
-    for (const field of fields) {
+      for (const field of fields) {
         if (!field.value.trim()) {
-            alert(`Please enter a valid ${field.previousElementSibling.innerText}.`);
-            return false;
+          alert(`Please enter a valid ${field.previousElementSibling.innerText}.`);
+          return false;
         }
-    }
+      }
 
-    const productPrice = document.getElementById('productPrice');
-    const productQuantity = document.getElementById('productQuantity');
+      const productPrice = document.getElementById('productPrice');
+      const productQuantity = document.getElementById('productQuantity');
 
-    // Convert Product Name and Category to uppercase
-    fields[0].value = fields[0].value.toUpperCase();
-    fields[1].value = fields[1].value.toUpperCase();
+      fields[0].value = fields[0].value.toUpperCase();
+      fields[1].value = fields[1].value.toUpperCase();
 
-    // Validate Quantity (must be an integer)
-    if (!Number.isInteger(parseFloat(productQuantity.value))) {
+      if (!Number.isInteger(parseFloat(productQuantity.value))) {
         alert('Quantity must be an integer.');
         return false;
-    }
+      }
 
-    // Validate Price (must be a float with up to 2 decimal places)
-    const priceRegex = /^\d+(\.\d{1,2})?$/;
-    if (!priceRegex.test(productPrice.value)) {
+      const priceRegex = /^\d+(\.\d{1,2})?$/;
+      if (!priceRegex.test(productPrice.value)) {
         alert('Price must be a number with up to 2 decimal places.');
         return false;
-    }
+      }
 
-    // Validate SKU (must be exactly 6 characters)
-    if (fields[4].value.length !== 6) {
+      if (fields[4].value.length !== 6) {
         alert('SKU must be exactly 6 characters.');
         return false;
+      }
+
+      return true;
     }
-
-    return true;
-}
-
   </script>
 </body>
 </html>
