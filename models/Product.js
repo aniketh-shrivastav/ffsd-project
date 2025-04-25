@@ -48,13 +48,18 @@ const ProductSchema = new mongoose.Schema({
     trim: true,
   },
   image: {
-    type: String, // 📷 Cloudinary URL goes here
+    type: String, 
     required: true,
   },
   seller: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
+  },
+  status: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+    default: "pending"
   },
   createdAt: {
     type: Date,

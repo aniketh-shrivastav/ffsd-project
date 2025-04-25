@@ -5,7 +5,7 @@ const fs = require("fs");
 const User = require("../models/User"); // Import User model
 const SellerProfile = require("../models/sellerProfile");
 const ServiceBooking = require("../models/serviceBooking");
-
+const Product = require("../models/Product");
 // Middleware
 const isAuthenticated = (req, res, next) => {
   if (req.session.user) return next();
@@ -20,31 +20,37 @@ const isManager = (req, res, next) => {
 // Routes
 router.get("/dashboard", isAuthenticated, isManager, async (req, res) => {
   try {
-    // Fetch total number of active users (excluding suspended users)
     const totalUsers = await User.countDocuments({ suspended: { $ne: true } });
 
-    // Fetch count by role, excluding suspended users
     const userCounts = await User.aggregate([
-      { $match: { suspended: { $ne: true } } }, // Exclude suspended users
+      { $match: { suspended: { $ne: true } } },
       { $group: { _id: "$role", count: { $sum: 1 } } }
     ]);
 
-    // Convert userCounts to an object like { customer: 650, seller: 230, etc. }
     const userDistribution = userCounts.reduce((acc, curr) => {
       acc[curr._id] = curr.count;
       return acc;
     }, {});
 
-    // Ensure all roles are accounted for (default to 0 if missing)
     const roles = ["customer", "service-provider", "seller", "admin"];
     const formattedCounts = roles.map(role => userDistribution[role] || 0);
 
+    // ✅ Fetch products by status
+    const [pendingProducts, approvedProducts, rejectedProducts] = await Promise.all([
+      Product.find({ status: "pending" }).populate("seller"),
+      Product.find({ status: "approved" }).populate("seller"),
+      Product.find({ status: "rejected" }).populate("seller")
+    ]);
+
     res.render("manager/dashboard", {
       totalUsers,
-      userCounts: formattedCounts, // Will be used for pie chart
+      userCounts: formattedCounts,
+      pendingProducts,
+      approvedProducts,
+      rejectedProducts
     });
   } catch (error) {
-    console.error("Error fetching user data:", error);
+    console.error("Error loading dashboard:", error);
     res.status(500).send("Error loading dashboard data.");
   }
 });
@@ -150,6 +156,27 @@ router.post('/cancel-booking/:id', isAuthenticated, isManager, async (req, res) 
   } catch (err) {
     console.error(err);
     res.status(500).send('Error cancelling booking');
+  }
+});
+
+
+router.post("/products/:id/approve", isAuthenticated, isManager, async (req, res) => {
+  try {
+    await Product.findByIdAndUpdate(req.params.id, { status: "approved" });
+    res.redirect("/manager/dashboard");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error approving product");
+  }
+});
+
+router.post("/products/:id/reject", isAuthenticated, isManager, async (req, res) => {
+  try {
+    await Product.findByIdAndUpdate(req.params.id, { status: "rejected" });
+    res.redirect("/manager/dashboard");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error rejecting product");
   }
 });
 

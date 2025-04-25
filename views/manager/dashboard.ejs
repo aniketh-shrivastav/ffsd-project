@@ -71,39 +71,59 @@
       </div>
     </div>
 
-    <!-- Activity Log -->
-    <div class="recent-activity">
-      <h2>Recent Activity</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>User</th>
-            <th>Action</th>
-            <th>Details</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>10:30 AM</td>
-            <td>John Doe</td>
-            <td>New Order</td>
-            <td>Custom Rim Installation</td>
-          </tr>
-          <tr>
-            <td>09:45 AM</td>
-            <td>Jane Smith</td>
-            <td>Service Listed</td>
-            <td>Paint Protection Film</td>
-          </tr>
-          <tr>
-            <td>09:15 AM</td>
-            <td>Mike Johnson</td>
-            <td>Payment</td>
-            <td>₹599 - Body Kit Installation</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="product-tabs">
+      <h2>Product Approval</h2>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="pending">Pending</button>
+        <button class="tab-btn" data-tab="approved">Approved</button>
+        <button class="tab-btn" data-tab="rejected">Rejected</button>
+      </div>
+    
+      <div class="tab-content" id="pending" style="display: block;">
+        <% if (pendingProducts.length > 0) { %>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Seller</th>
+                <th>Price</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% pendingProducts.forEach(product => { %>
+                <tr>
+                  <td><%= product.name %></td>
+                  <td><%= product.seller.name %></td>
+                  <td>₹<%= product.price %></td>
+                  <td>
+                    <form action="/manager/products/<%= product._id %>/approve" method="POST" style="display:inline;">
+                      <button type="submit">Approve</button>
+                    </form>
+                    <form action="/manager/products/<%= product._id %>/reject" method="POST" style="display:inline;">
+                      <button type="submit">Reject</button>
+                    </form>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } else { %>
+          <p>No pending products.</p>
+        <% } %>
+      </div>
+    
+      <div class="tab-content" id="approved" style="display:none;">
+        <% approvedProducts.forEach(p => { %>
+          <p><strong><%= p.name %></strong> by <%= p.seller.name %> (₹<%= p.price %>)</p>
+        <% }) %>
+      </div>
+    
+      <div class="tab-content" id="rejected" style="display:none;">
+        <% rejectedProducts.forEach(p => { %>
+          <p><strong><%= p.name %></strong> by <%= p.seller.name %> (₹<%= p.price %>)</p>
+        <% }) %>
+      </div>
     </div>
 
   </div> <!-- /.main-content -->
@@ -207,6 +227,21 @@
             legend: { position: 'bottom', labels: { color: '#fff' } }
           }
         }
+      });
+    });
+  </script>
+  <script>
+    const tabBtns = document.querySelectorAll(".tab-btn");
+    const tabContents = document.querySelectorAll(".tab-content");
+  
+    tabBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        tabBtns.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+  
+        tabContents.forEach(tab => {
+          tab.style.display = tab.id === btn.dataset.tab ? "block" : "none";
+        });
       });
     });
   </script>
