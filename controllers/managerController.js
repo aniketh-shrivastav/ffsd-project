@@ -1,3 +1,5 @@
+const ServiceBooking = require("../models/serviceBooking");
+
 exports.getProfileData = async (req, res) => {
   try {
       const userId = req.params.id;
@@ -50,5 +52,22 @@ exports.getProfileData = async (req, res) => {
   } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+exports.getPayments = async (req, res) => {
+  try {
+    const serviceOrders = await ServiceBooking.find({ status: "Ready" }) // ✅ filter here
+      .populate("customerId", "name")
+      .populate("providerId", "name");
+
+    res.render("manager/payments", {
+      serviceOrders,
+      orders: [] // Still empty
+    });
+  } catch (err) {
+    console.error("Error fetching service orders:", err);
+    res.status(500).send("Internal Server Error");
   }
 };

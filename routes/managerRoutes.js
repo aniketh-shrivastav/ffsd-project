@@ -71,19 +71,7 @@ router.get('/orders', isAuthenticated, isManager, async (req, res) => {
   }
 });
 
-router.get("/payments", isAuthenticated, isManager, (req, res) => {
-  const paymentsPath = path.join(__dirname, "../data/payments.json"); // Adjust path as needed
-
-  fs.readFile(paymentsPath, "utf8", (err, data) => {
-    if (err) {
-      console.error("Failed to load payments data:", err);
-      return res.status(500).send("Error loading payments.");
-    }
-
-    const payments = JSON.parse(data);
-    res.render("manager/payments", { payments });
-  });
-});
+router.get("/payments",isAuthenticated,isManager, managerController.getPayments);
 
 router.get("/services", isAuthenticated, isManager, async (req, res) => {
   try {
