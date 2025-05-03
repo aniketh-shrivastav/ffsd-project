@@ -44,9 +44,6 @@
       <label for="date">Select Date:</label>
       <input type="date" id="date" required>
 
-      <label for="name">Your Name:</label>
-      <input type="text" id="name" required placeholder="Enter your name">
-
       <label for="car-model">Car Model:</label>
       <input type="text" id="car-model" required placeholder="Enter your car model">
 
@@ -99,9 +96,15 @@
     const summaryBox = document.getElementById("summary-box");
   
     const phoneInput = document.getElementById("phone");
-    const nameInput = document.getElementById("name");
     const carModelInput = document.getElementById("car-model");
     const addressInput = document.getElementById("address");
+
+    const dateInput = document.getElementById("date");
+const today = new Date();
+today.setDate(today.getDate() + 7); // Add 7 days
+
+const minDate = today.toISOString().split("T")[0];
+dateInput.min = minDate;
   
     function getSelectedServices() {
       return Array.from(serviceSelect.selectedOptions).map(option => option.value);
@@ -165,6 +168,7 @@
   
     // Step 3: Services selected → Show cost
     serviceSelect.addEventListener("change", updateCostDisplay);
+    
   
     // Form submission (Step 4)
     bookingForm.addEventListener("submit", function (e) {
@@ -176,7 +180,6 @@
       const selectedProviderOption = providerSelect.options[providerSelect.selectedIndex];
       const phone = phoneInput.value.trim();
       const description = document.getElementById("description").value.trim();
-      const name = nameInput.value.trim();
       const carModel = carModelInput.value.trim();
       const address = addressInput.value.trim();
   
@@ -196,7 +199,7 @@
         return;
       }
   
-      if (!name || !carModel || !address) {
+      if (!carModel || !address) {
         alert("Please fill in all required fields.");
         return;
       }
@@ -211,7 +214,6 @@
       summaryBox.innerHTML = `
         <div>
           <h3>Booking Summary</h3>
-          <p><strong>Name:</strong> ${name}</p>
           <p><strong>Car Model:</strong> ${carModel}</p>
           <p><strong>Services:</strong> ${selectedServices.join(", ")}</p>
           <p><strong>Provider:</strong> ${selectedProviderOption.text}</p>
@@ -237,7 +239,6 @@
             selectedServices: getSelectedServices(),
             date: document.getElementById("date").value,
             phone: phoneInput.value.trim(),
-            name: nameInput.value.trim(),
             carModel: carModelInput.value.trim(),
             address: addressInput.value.trim(),
             description: document.getElementById("description").value.trim(),

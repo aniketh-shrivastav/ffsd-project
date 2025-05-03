@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>User Profiles - Admin</title>
     <link rel="stylesheet" href="/styles/admin-consistent.css">
     <style>
@@ -75,6 +75,7 @@
             border-radius: 5px;
             margin-top: 10px;
         }
+
         .service-provider-badge {
             background: #3498db;
             color: white;
@@ -83,6 +84,60 @@
             font-weight: bold;
             border-radius: 5px;
             margin-top: 10px;
+        }
+
+        /* Tabs */
+        .tab-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .tab-button:hover {
+            background-color: #444;
+        }
+
+        .tab-button.active {
+            background-color: #27ae60; /* green shade */
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .close-modal {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -98,6 +153,16 @@
     <!-- Main Content -->
     <div class="main-content">
         <h1>User Profiles</h1>
+
+        <!-- Tabs -->
+        <div class="tab-bar">
+            <button class="tab-button active" data-role="all">All Profiles</button>
+            <button class="tab-button" data-role="customer">Customer</button>
+            <button class="tab-button" data-role="seller">Seller</button>
+            <button class="tab-button" data-role="service-provider">Service Provider</button>
+        </div>
+
+        <!-- Search -->
         <div class="search-bar">
             <input type="text" id="searchInput" placeholder="Search profiles...">
         </div>
@@ -105,9 +170,9 @@
         <!-- Profiles Grid -->
         <div class="profiles-grid" id="profilesContainer">
             
-            <!-- Render Service Providers -->
+            <!-- Service Providers -->
             <% serviceProviders.forEach(provider => { %>
-                <div class="profile-card">
+                <div class="profile-card service-provider">
                     <div class="profile-header">
                         <img src="<%= provider.profilePicture || 'https://via.placeholder.com/80' %>" alt="<%= provider.name %>" class="profile-avatar">
                     </div>
@@ -117,17 +182,14 @@
                             <p><strong>Email:</strong> <span><%= provider.email %></span></p>
                             <p><strong>Phone:</strong> <span><%= provider.phone %></span></p>
                         </div>
-
                         <h3>Services Offered:</h3>
-                   <ul>
-                      <% provider.servicesOffered.forEach(service => { %>
-                      <li><strong><%= service.name %></strong> - ₹<%= service.cost %></li>
-                      <% }) %>
-                   </ul>
-
-                   <p><strong>District:</strong> <%= provider.district || "Not provided" %></p>
+                        <ul>
+                            <% provider.servicesOffered.forEach(service => { %>
+                                <li><strong><%= service.name %></strong> - ₹<%= service.cost %></li>
+                            <% }) %>
+                        </ul>
+                        <p><strong>District:</strong> <%= provider.district || "Not provided" %></p>
                         <div class="service-provider-badge">Service Provider</div>
-
                         <div class="profile-actions">
                             <button class="btn-view" onclick="viewProfile('<%= provider._id %>')">View Profile</button>
                         </div>
@@ -135,9 +197,9 @@
                 </div>
             <% }) %>
 
-            <!-- Render Sellers -->
+            <!-- Sellers -->
             <% sellers.forEach(seller => { %>
-                <div class="profile-card">
+                <div class="profile-card seller">
                     <div class="profile-header">
                         <img src="<%= seller.sellerId.profilePicture || 'https://via.placeholder.com/80' %>" alt="<%= seller.sellerId.name %>" class="profile-avatar">
                     </div>
@@ -147,13 +209,10 @@
                             <p><strong>Contact Email:</strong> <span><%= seller.sellerId.email %></span></p>
                             <p><strong>Phone:</strong> <span><%= seller.sellerId.phone %></span></p>
                         </div>
-
                         <h3>Store Details:</h3>
                         <p><strong>Owner Name:</strong> <%= seller.ownerName %></p>
                         <p><strong>Store Address:</strong> <%= seller.address %></p>
-
                         <div class="seller-badge">Seller</div>
-
                         <div class="profile-actions">
                             <button class="btn-view" onclick="viewProfile('<%= seller._id %>')">View Profile</button>
                         </div>
@@ -161,22 +220,106 @@
                 </div>
             <% }) %>
 
+            <!-- Customers -->
+            <% customers.forEach(customer => { %>
+                <div class="profile-card customer">
+                    <div class="profile-header">
+                        <img src="<%= customer.profilePicture || customer.userId.profilePicture || 'https://via.placeholder.com/80' %>" alt="<%= customer.userId.name %>" class="profile-avatar">
+                    </div>
+                    <div class="profile-body">
+                        <h3 class="profile-name"><%= customer.userId.name %></h3>
+                        <div class="profile-info">
+                            <p><strong>Email:</strong> <span><%= customer.userId.email %></span></p>
+                            <p><strong>Phone:</strong> <span><%= customer.userId.phone %></span></p>
+                        </div>
+                        <h3>Customer Details:</h3>
+                        <p><strong>Address:</strong> <%= customer.address || "Not provided" %></p>
+                        <p><strong>District:</strong> <%= customer.district || "Not provided" %></p>
+                        <p><strong>Car Model:</strong> <%= customer.carModel || "N/A" %></p>
+                        <p><strong>Payments:</strong> <%= customer.payments || "N/A" %></p>
+                        <div class="seller-badge" style="background: #2ecc71;">Customer</div>
+                        <div class="profile-actions">
+                            <button class="btn-view" onclick="viewProfile('<%= customer._id %>')">View Profile</button>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modalBody">
+                <!-- Profile content will be injected here -->
+            </div>
         </div>
     </div>
 
     <script>
-        function viewProfile(id) {
-            alert(`Viewing profile details for ID: ${id}`);
-            // In real implementation, redirect to profile details page
-            // window.location.href = `/manager/profiles/${id}`;
+        async function viewProfile(userId) {
+            try {
+                const response = await fetch(`/manager/profile-data/${userId}`);
+                const data = await response.json();
+        
+                const modalBody = document.getElementById('modalBody');
+                modalBody.innerHTML = `
+                    <h2>${data.role} Profile</h2>
+                    <img src="${data.profilePicture}" alt="Profile Picture" width="100">
+                    <p><strong>Name:</strong> ${data.name}</p>
+                    <p><strong>Email:</strong> ${data.email}</p>
+                    <p><strong>Phone:</strong> ${data.phone}</p>
+                    ${data.extraDetails}
+                `;
+        
+                document.getElementById('profileModal').style.display = 'block';
+            } catch (err) {
+                alert("Error loading profile.");
+                console.error(err);
+            }
         }
+        
+        // Close modal
+        document.querySelector(".close-modal").onclick = () => {
+            document.getElementById('profileModal').style.display = 'none';
+        };
+        window.onclick = function(event) {
+            if (event.target === document.getElementById('profileModal')) {
+                document.getElementById('profileModal').style.display = "none";
+            }
+        };
 
+        // Search filtering
         document.getElementById('searchInput').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             document.querySelectorAll('.profile-card').forEach(card => {
                 const name = card.querySelector('.profile-name').textContent.toLowerCase();
                 const email = card.querySelector('.profile-info span').textContent.toLowerCase();
                 card.style.display = name.includes(searchTerm) || email.includes(searchTerm) ? 'block' : 'none';
+            });
+        });
+
+        // Tab filtering
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const profileCards = document.querySelectorAll('.profile-card');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                const role = button.getAttribute('data-role');
+
+                profileCards.forEach(card => {
+                    if (role === 'all') {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = card.classList.contains(role) ? 'block' : 'none';
+                    }
+                });
+
+                // Clear search input
+                document.getElementById('searchInput').value = '';
             });
         });
     </script>

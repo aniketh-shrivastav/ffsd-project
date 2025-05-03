@@ -27,15 +27,6 @@ app.use(
   })
 );
 
-// Ensure `User` is defined before using it
-(async () => {
-  try {
-    await User.updateMany({}, { $set: { suspended: false } });
-    console.log("Reset all user suspensions on startup");
-  } catch (err) {
-    console.error("Error resetting user suspensions:", err);
-  }
-})();
 
 // Routes
 const authRoutes = require("./routes/authRoutes");

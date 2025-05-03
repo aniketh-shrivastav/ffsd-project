@@ -7,7 +7,6 @@ const ServiceBookingSchema = new mongoose.Schema({
   selectedServices: [{ type: String, required: true }], // names of selected services
   date: { type: Date, required: true },
   phone: { type: String, required: true },
-  name: { type: String, required: true },
   carModel: { type: String, required: true },
   address: { type: String, required: true },
   description: { type: String, required: true },

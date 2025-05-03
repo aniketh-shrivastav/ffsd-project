@@ -42,6 +42,18 @@
         .suspended-user {
             background-color: #f8d7da !important;
         }
+
+        .btn-restore {
+            background-color: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-restore:hover {
+            background-color: #2980b9;
+        }        
     </style>
 </head>
 <body>
@@ -92,7 +104,7 @@
                                         <% if (!user.suspended) { %>
                                             <button class="btn-suspend" data-user-id="<%= user._id %>">Suspend</button>
                                         <% } else { %>
-                                            <span style="color: red;">Suspended</span>
+                                            <button class="btn-restore" data-user-id="<%= user._id %>">Restore</button>
                                         <% } %>
                                     </td>
                                 </tr>
@@ -163,6 +175,34 @@
             // Set initial view
             filterUsers("all");
         });
+
+        // Restore button functionality
+document.querySelectorAll(".btn-restore").forEach(button => {
+    button.addEventListener("click", async () => {
+        const userId = button.dataset.userId;
+
+        const confirmRestore = confirm("Are you sure you want to restore this user?");
+        if (!confirmRestore) return;
+
+        try {
+            const response = await fetch(`/manager/users/restore/${userId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                alert("User restored successfully");
+                location.reload();
+            } else {
+                alert("Error: " + data.message);
+            }
+        } catch (error) {
+            alert("An error occurred while restoring the user.");
+            console.error("Restore error:", error);
+        }
+    });
+});
     </script>
 
 </body>

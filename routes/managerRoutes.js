@@ -5,7 +5,9 @@ const fs = require("fs");
 const User = require("../models/User"); // Import User model
 const SellerProfile = require("../models/sellerProfile");
 const ServiceBooking = require("../models/serviceBooking");
+const CustomerProfile = require("../models/CustomerProfile");
 const Product = require("../models/Product");
+const managerController = require('../controllers/managerController');
 // Middleware
 const isAuthenticated = (req, res, next) => {
   if (req.session.user) return next();
@@ -85,27 +87,34 @@ router.get("/payments", isAuthenticated, isManager, (req, res) => {
 
 router.get("/services", isAuthenticated, isManager, async (req, res) => {
   try {
-      // Fetch active service providers (not suspended)
-      const serviceProviders = await User.find({
-          role: "service-provider",
-          suspended: { $ne: true }
-      });
-     
+    // Fetch active service providers
+    const serviceProviders = await User.find({
+      role: "service-provider",
+      suspended: { $ne: true },
+    });
 
-      // Filter out sellers where the associated User was suspended
-      const sellers = await SellerProfile.find().populate("sellerId", "name email phone suspended");
+    // Active sellers (with valid associated User)
+    const sellers = await SellerProfile.find().populate("sellerId", "name email phone suspended");
+    const activeSellers = sellers.filter(seller => seller.sellerId && !seller.sellerId.suspended);
 
-      const activeSellers = sellers.filter(seller => seller.sellerId && !seller.sellerId.suspended);
+    // Fetch customers and populate user info
+    const customers = await CustomerProfile.find().populate("userId", "name email phone suspended");
 
+    const activeCustomers = customers.filter(c => c.userId && !c.userId.suspended);
 
-      // Render the page with data
-      res.render("manager/services", { serviceProviders, sellers: activeSellers });
-
+    // Render view
+    res.render("manager/services", {
+      serviceProviders,
+      sellers: activeSellers,
+      customers: activeCustomers, // ✅ pass to view
+    });
   } catch (error) {
-      console.error(error);
-      res.status(500).send("Error fetching data");
+    console.error(error);
+    res.status(500).send("Error fetching data");
   }
 });
+
+router.get('/profile-data/:id', managerController.getProfileData);
 
 router.get("/users", isAuthenticated, isManager, async (req, res) => {
   try {
@@ -126,7 +135,7 @@ router.get("/users", isAuthenticated, isManager, async (req, res) => {
   }
 });
 
-router.post("/users/suspend/:id", async (req, res) => {
+router.post("/users/suspend/:id",isAuthenticated, isManager, async (req, res) => {
   try {
     const userId = req.params.id; // This should match _id in MongoDB
     console.log("Suspending user with ID:", userId);
@@ -143,6 +152,27 @@ router.post("/users/suspend/:id", async (req, res) => {
     res.json({ success: true, message: "User suspended successfully" });
   } catch (error) {
     console.error("Error suspending user:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
+router.post("/users/restore/:id", async (req, res) => {
+  try {
+    const userId = req.params.id;
+    console.log("Restoring user with ID:", userId);
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    user.suspended = false; // Re-activate the user
+    await user.save();
+
+    res.json({ success: true, message: "User restored successfully" });
+  } catch (error) {
+    console.error("Error restoring user:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
