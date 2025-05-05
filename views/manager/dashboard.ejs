@@ -6,6 +6,79 @@
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="/styles/admin-consistent.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+    .product-tabs table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 0.95rem;
+      background-color: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 8px rgba(0,0,0,0.05);
+    }
+    
+    .product-tabs thead {
+      background-color: #007BFF;
+      color: white;
+    }
+    
+    .product-tabs th, .product-tabs td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+    
+    .product-tabs tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    
+    .product-tabs tr:hover {
+      background-color: #0e9fe8;
+    }
+    
+    .product-tabs td form {
+      display: inline;
+    }
+    
+    .product-tabs button {
+      background-color: #007BFF;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      margin-right: 5px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background-color 0.3s ease;
+    }
+    
+    .product-tabs button:hover {
+      background-color: #0056b3;
+    }
+    
+    .tabs {
+      margin-bottom: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .tab-btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 12px;
+      background-color: #e0e0e0;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    
+    .tab-btn.active {
+      background-color: #007BFF;
+      color: white;
+    }
+  </style>
 </head>
 <body>
 
@@ -87,6 +160,10 @@
                 <th>Name</th>
                 <th>Seller</th>
                 <th>Price</th>
+                <th>Category</th>
+                <th>Brand</th>
+                <th>Description</th>
+                <th>Stock</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -96,13 +173,17 @@
                   <td><%= product.name %></td>
                   <td><%= product.seller.name %></td>
                   <td>₹<%= product.price %></td>
+                  <td><%= product.category || "N/A" %></td>
+                  <td><%= product.brand || "N/A" %></td>
+                  <td><%= product.description || "No description" %></td>
+                  <td><%= product.quantity || 0 %></td>
                   <td>
-                    <form action="/manager/products/<%= product._id %>/approve" method="POST" style="display:inline;">
-                      <button type="submit">Approve</button>
-                    </form>
-                    <form action="/manager/products/<%= product._id %>/reject" method="POST" style="display:inline;">
-                      <button type="submit">Reject</button>
-                    </form>
+                      <form action="/manager/products/<%= product._id %>/approve" method="POST" style="display:inline;">
+                        <button type="submit">Approve</button>
+                      </form>
+                      <form action="/manager/products/<%= product._id %>/reject" method="POST" style="display:inline;">
+                        <button type="submit">Reject</button>
+                      </form>
                   </td>
                 </tr>
               <% }) %>
@@ -114,15 +195,81 @@
       </div>
     
       <div class="tab-content" id="approved" style="display:none;">
-        <% approvedProducts.forEach(p => { %>
-          <p><strong><%= p.name %></strong> by <%= p.seller.name %> (₹<%= p.price %>)</p>
-        <% }) %>
+        <% if (approvedProducts.length > 0) { %>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Seller</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th>Brand</th>
+                <th>Description</th>
+                <th>Stock</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% approvedProducts.forEach(product => { %>
+                <tr>
+                  <td><%= product.name %></td>
+                  <td><%= product.seller?.name || "N/A" %></td>
+                  <td>₹<%= product.price %></td>
+                  <td><%= product.category || "N/A" %></td>
+                  <td><%= product.brand || "N/A" %></td>
+                  <td><%= product.description || "No description" %></td>
+                  <td><%= product.quantity || 0 %></td>
+                  <td>
+                      <form action="/manager/products/<%= product._id %>/reject" method="POST">
+                        <button type="submit">Reject</button>
+                      </form>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } else { %>
+          <p>No approved products.</p>
+        <% } %>
       </div>
-    
-      <div class="tab-content" id="rejected" style="display:none;">
-        <% rejectedProducts.forEach(p => { %>
-          <p><strong><%= p.name %></strong> by <%= p.seller.name %> (₹<%= p.price %>)</p>
-        <% }) %>
+      
+      <div class="tab-content" id="rejected" style="display: none;">
+        <% if (rejectedProducts.length > 0) { %>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Seller</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th>Brand</th>
+                <th>Description</th>
+                <th>Stock</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% rejectedProducts.forEach(product => { %>
+                <tr>
+                  <td><%= product.name %></td>
+                  <td><%= product.seller?.name || "N/A" %></td>
+                  <td>₹<%= product.price %></td>
+                  <td><%= product.category || "N/A" %></td>
+                  <td><%= product.brand || "N/A" %></td>
+                  <td><%= product.description || "No description" %></td>
+                  <td><%= product.quantity || 0 %></td>
+                  <td>
+                      <form action="/manager/products/<%= product._id %>/approve" method="POST">
+                        <button type="submit">Approve</button>
+                      </form>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } else { %>
+          <p>No rejected products.</p>
+        <% } %>
       </div>
     </div>
 

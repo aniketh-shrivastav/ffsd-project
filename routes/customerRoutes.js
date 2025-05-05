@@ -239,6 +239,23 @@ router.post('/profile', async (req, res) => {
   }
 });
 
+router.post('/rate-service/:id',customerOnly, async (req, res) => {
+  const { rating, review } = req.body;
+  const bookingId = req.params.id;
+
+  try {
+    await ServiceBooking.findByIdAndUpdate(bookingId, {
+      rating: Number(rating),
+      review: review || ''
+    });
+
+    res.status(200).json({ success: true, message: 'Thank you for rating the service!' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Something went wrong while submitting the rating.' });
+  }
+});
+
 router.get("/purchase", customerOnly, (req, res) => {
   res.render("customer/purchase");
 });

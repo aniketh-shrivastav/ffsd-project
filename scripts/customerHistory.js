@@ -112,3 +112,43 @@ function reviewService(service) {
       alert("Invalid rating. Please enter a number between 1 and 5.");
   }
 }
+
+function openRatingModal(bookingId) {
+  document.getElementById('ratingModal').style.display = 'flex';
+  document.getElementById('bookingId').value = bookingId;
+}
+
+function closeRatingModal() {
+  document.getElementById('ratingModal').style.display = 'none';
+  document.getElementById('ratingForm').reset();
+}
+
+document.getElementById('ratingForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const bookingId = document.getElementById('bookingId').value;
+  const rating = document.getElementById('rating').value;
+  const review = document.getElementById('review').value;
+
+  try {
+    const res = await fetch(`/customer/rate-service/${bookingId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ rating, review })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      alert(data.message);
+      closeRatingModal();
+      window.location.reload(); // refresh to reflect rating
+    } else {
+      alert('Failed to submit rating.');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Error submitting rating.');
+  }
+});
