@@ -12,6 +12,35 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
+  // ✅ Add to Cart using form submission interception
+  const form = document.getElementById("add-to-cart-form");
+  if (form) {
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault(); // stop default form submission
+
+      const id = form.querySelector('input[name="id"]').value;
+
+      try {
+        const response = await fetch("/customer/cart/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ id })  // Send ID in JSON
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          alert("Item added to cart!");
+        } else {
+          alert(`Failed to add to cart: ${data.message}`);
+        }
+      } catch (err) {
+        console.error("Add to cart error:", err);
+        alert("Error adding to cart");
+      }
+    });
+  }
   searchInput.addEventListener("input", filterParts);
 
   // Add to Cart
