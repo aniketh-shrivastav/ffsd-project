@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const fs = require("fs");
-const path = require("path");
+
 const User = require("../models/User");
 const Cart = require("../models/Cart");
-const { getAllProducts, getProductById } = require("../utils/productUtils");
+const Product = require("../models/Product"); // ✅ Import Product model
+
 const CustomerProfile = require('../models/CustomerProfile');
 const mongoose = require("mongoose");
 const ServiceBooking = require("../models/serviceBooking");
@@ -23,20 +23,29 @@ const isCustomer = (req, res, next) => {
 // Combined middleware for simplicity
 const customerOnly = [isAuthenticated, isCustomer];
 
-// Load products with error handling
-let productsData = { products: [] };
-try {
-  const fileContent = fs.readFileSync(path.join(__dirname, '../data/product.json'), 'utf8');
-  productsData = JSON.parse(fileContent);
-} catch (err) {
-  console.error("Failed to load product.json:", err);
-}
+
 
 // Routes
-router.get("/index", customerOnly, (req, res) => {
-  const products = getAllProducts();
-  res.render("customer/index", { products, user: req.session.user });
+
+
+// GET /customer/index
+router.get("/index", customerOnly, async (req, res) => {
+  try {
+    const products = await Product.find({ status: "approved" }); // ✅ only show approved products
+    res.render("customer/index", {
+      products,
+      user: req.session.user
+    });
+  } catch (err) {
+    console.error("Error fetching products:", err);
+    res.render("customer/index", {
+      products: [],
+      user: req.session.user,
+      error: "Failed to load products"
+    });
+  }
 });
+
 
 router.get("/booking", customerOnly, async (req, res) => {
   try {
@@ -107,7 +116,8 @@ router.post("/cart/add", customerOnly, async (req, res) => {
       const userId = req.session.user.id;
       const { id } = req.body;
 
-      const product = getProductById(parseInt(id));
+      const product = await Product.findById(id);
+
       console.log("Incoming cart item:", { id, product }); // ✅ Debugging line added here
 
       if (!product) {
@@ -236,6 +246,18 @@ router.post('/profile', async (req, res) => {
   } catch (error) {
     console.error("Error updating profile:", error);
     res.status(500).send("Error updating profile");
+  }
+});
+router.get("/product/:id", customerOnly, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id).populate("seller", "name");
+    if (!product || product.status !== "approved") {
+      return res.status(404).send("Product not found");
+    }
+    res.render("customer/productDetails", { product, user: req.session.user });
+  } catch (error) {
+    console.error("Product detail fetch error:", error);
+    res.status(500).send("Error fetching product details");
   }
 });
 
