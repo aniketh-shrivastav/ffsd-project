@@ -210,7 +210,13 @@
         <% }) %>
       </div>
     <% } %>
-
+    <% if (items.length > 0) { %>
+      <div style="text-align: center; margin: 20px;">
+        <button id="checkout-btn" style="padding: 10px 20px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+          Proceed to Checkout
+        </button>
+      </div>
+    <% } %>    
     <div class="payment-container" id="payment-selection" style="display: none;">
       <h2>Select Payment Method</h2>
       <div id="saved-payments" class="payment-method"></div>
