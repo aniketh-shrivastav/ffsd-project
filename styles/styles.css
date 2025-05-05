@@ -25,7 +25,22 @@
     color: var(--text-dark);
     line-height: 1.6;
   }
+  /*product details style part*/
+  .container.mt-5 {
+    margin-top: 120px !important; /* to accommodate fixed header */
+  }
   
+  .btn-secondary {
+    background-color: var(--accent-color);
+    border: none;
+    color: white;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #e05006;
+  }
+  
+
   /* Header Styles */
   header {
     display: flex;
