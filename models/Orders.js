@@ -1,73 +1,34 @@
 const mongoose = require("mongoose");
 
-// Schema for each item in the order
-const orderItemSchema = new mongoose.Schema({
-  productId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Product",
-    required: true
-  },
-  name: {
-    type: String,
-    required: true
-  },
-  price: {
-    type: Number,
-    required: true,
-    min: 0
-  },
-  quantity: {
-    type: Number,
-    required: true,
-    min: 1
-  },
-  image: {
-    type: String,
-    required: true
-  },
-  sku: {
-    type: String,
-    required: true
-  }
-});
+const OrderItemSchema = new mongoose.Schema({
+  productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+  name: { type: String, required: true },  // Snapshot at time of order
+  price: { type: Number, required: true },
+  image: { type: String },
+  quantity: { type: Number, required: true },
+  seller: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true } // populated at order time
+}, { _id: false });
 
-// Schema for the order
-const orderSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true
-  },
-  items: [orderItemSchema], // All products ordered
-  totalAmount: {
-    type: Number,
-    required: true,
-    min: 0
+const OrderSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Same as Cart userId
+  items: { type: [OrderItemSchema], required: true },
+  totalAmount: { type: Number, required: true },
+  deliveryAddress: { type: String, required: true }, // Get from CustomerProfile or User
+  district: { type: String, required: true },
+  orderStatus: {
+    type: String,
+    enum: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
+    default: "pending"
   },
   paymentStatus: {
     type: String,
     enum: ["pending", "paid", "failed"],
-    default: "pending"
-  },
-  orderStatus: {
-    type: String,
-    enum: ["processing", "shipped", "delivered", "cancelled"],
-    default: "processing"
-  },
-  shippingAddress: {
-    fullName: String,
-    addressLine1: String,
-    addressLine2: String,
-    city: String,
-    state: String,
-    postalCode: String,
-    country: String,
-    phone: String
+    default: "paid"
   },
   placedAt: {
     type: Date,
     default: Date.now
   }
-}, { timestamps: true });
+});
 
-module.exports = mongoose.model("Order", orderSchema);
+module.exports = mongoose.model("Order", OrderSchema);

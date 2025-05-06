@@ -15,8 +15,29 @@
     </header>
 
     <main>
-        <h2>Upcoming Orders</h2>
-        <ul id="upcoming-orders" class="parts-list"></ul>
+      <h2>Upcoming Orders</h2>
+      <ul id="upcoming-orders" class="parts-list">
+        <% if (upcomingOrders.length === 0) { %>
+          <p class="no-items">No upcoming orders found.</p>
+        <% } else { %>
+          <% upcomingOrders.forEach(order => { %>
+            <li class="history-item">
+              <div class="item-details">
+                <h3>Order ID: <%= order._id %></h3>
+                <p><strong>Placed on:</strong> <%= new Date(order.placedAt).toLocaleDateString() %></p>
+                <p><strong>Status:</strong> <%= order.orderStatus %></p>
+                <p><strong>Total Amount:</strong> ₹<%= order.totalAmount %></p>
+                <p><strong>Items:</strong></p>
+                <ul>
+                  <% order.items.forEach(item => { %>
+                    <li><%= item.name %> x <%= item.quantity %> (₹<%= item.price %>)</li>
+                  <% }) %>
+                </ul>
+              </div>
+            </li>
+          <% }) %>
+        <% } %>
+      </ul>
 
         <h2>Past Orders</h2>
         <ul id="past-orders" class="parts-list"></ul>

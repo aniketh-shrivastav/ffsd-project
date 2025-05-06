@@ -3,11 +3,13 @@ const router = express.Router();
 
 const User = require("../models/User");
 const Cart = require("../models/Cart");
-const Product = require("../models/Product"); // ✅ Import Product model
+const Product = require("../models/Product");
+const orderController = require("../controllers/orderController"); 
 
 const CustomerProfile = require('../models/CustomerProfile');
 const mongoose = require("mongoose");
 const ServiceBooking = require("../models/serviceBooking");
+const Order = require("../models/Orders");
 
 // Middleware
 const isAuthenticated = (req, res, next) => {
@@ -111,6 +113,8 @@ router.get("/cart", customerOnly, async (req, res) => {
   }
 });
 
+router.post("/create-order", customerOnly, orderController.createOrderFromCart);
+
 router.post("/cart/add", customerOnly, async (req, res) => {
   try {
       const userId = req.session.user.id;
@@ -160,25 +164,24 @@ router.get('/history', customerOnly, async (req, res) => {
   const customerId = req.session.user.id;
 
   try {
+    // 1️⃣ Fetch bookings
     const bookings = await ServiceBooking.find({ customerId })
-      .populate('providerId') // providerId should bring in servicesOffered
+      .populate('providerId')
       .sort({ createdAt: -1 });
 
     const enrichedBookings = bookings.map(booking => {
       const provider = booking.providerId;
       const servicesOffered = provider?.servicesOffered || [];
 
-      // Build a cost map from the provider's current service prices
       const costMap = {};
       servicesOffered.forEach(s => {
         costMap[s.name] = s.cost;
       });
 
-      // ✅ Use saved cost if it exists and is valid
       let totalCost = booking.totalCost;
       if (!totalCost || totalCost === 0) {
         totalCost = (booking.selectedServices || []).reduce((sum, service) => {
-          return sum + (costMap[service] || 0); // fallback if service not found
+          return sum + (costMap[service] || 0);
         }, 0);
       }
 
@@ -188,7 +191,24 @@ router.get('/history', customerOnly, async (req, res) => {
       };
     });
 
-    res.render('customer/history', { bookings: enrichedBookings });
+    // 2️⃣ Fetch orders for same user
+    const orders = await Order.find({ userId: customerId }).sort({ placedAt: -1 });
+
+    // Split orders
+    const upcomingOrders = orders.filter(o =>
+      ["pending", "confirmed", "shipped"].includes(o.orderStatus)
+    );
+    const pastOrders = orders.filter(o =>
+      ["delivered", "cancelled"].includes(o.orderStatus)
+    );
+
+    // 3️⃣ Render everything to EJS
+    res.render('customer/history', {
+      bookings: enrichedBookings,
+      upcomingOrders,
+      pastOrders
+    });
+
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');

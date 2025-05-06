@@ -271,6 +271,26 @@
       .then(() => location.reload())
       .catch(err => alert("Failed to remove item"));
     }
+
+    document.getElementById("place-order").addEventListener("click", () => {
+      fetch("/customer/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to place order");
+        return res.json();
+      })
+      .then(data => {
+        alert("Order placed successfully!");
+        // Optionally redirect to orders page or homepage
+        window.location.href = "/customer/history"; 
+      })
+      .catch(err => {
+        alert("Error placing order");
+        console.error(err);
+      });
+    });
   </script>
   <script src="/scripts/cart.js"></script>
 </body>
