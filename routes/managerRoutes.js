@@ -8,6 +8,7 @@ const ServiceBooking = require("../models/serviceBooking");
 const CustomerProfile = require("../models/CustomerProfile");
 const Product = require("../models/Product");
 const managerController = require('../controllers/managerController');
+const Order = require("../models/Orders");
 // Middleware
 const isAuthenticated = (req, res, next) => {
   if (req.session.user) return next();
@@ -59,15 +60,23 @@ router.get("/dashboard", isAuthenticated, isManager, async (req, res) => {
 
 router.get('/orders', isAuthenticated, isManager, async (req, res) => {
   try {
+    // Fetch Bookings
     const bookings = await ServiceBooking.find()
       .populate('customerId')
       .populate('providerId')
       .sort({ createdAt: -1 });
 
-    res.render('manager/orders', { bookings });
+    // Fetch Orders
+    const orders = await Order.find()
+      .populate('userId') // customer
+      .populate('items.seller') // sellers inside items array
+      .sort({ placedAt: -1 });
+
+    res.render('manager/orders', { bookings, orders });
+
   } catch (err) {
     console.error(err);
-    res.status(500).send('Error loading bookings');
+    res.status(500).send('Error loading bookings and orders');
   }
 });
 
@@ -195,6 +204,46 @@ router.post("/products/:id/reject", isAuthenticated, isManager, async (req, res)
   } catch (err) {
     console.error(err);
     res.status(500).send("Error rejecting product");
+  }
+});
+
+router.post('/cancel-order/:orderId', isAuthenticated, isManager, async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    const order = await Order.findById(orderId);
+
+    if (!order) return res.status(404).send('Order not found');
+    if (order.orderStatus === 'cancelled') return res.status(400).send('Already cancelled');
+
+    // Save current status before cancelling
+    order.previousStatus = order.orderStatus;
+    order.orderStatus = 'cancelled';
+    await order.save();
+
+    res.redirect('/manager/orders');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error cancelling order');
+  }
+});
+
+router.post('/restore-order/:orderId', isAuthenticated, isManager, async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    const order = await Order.findById(orderId);
+
+    if (!order) return res.status(404).send('Order not found');
+    if (order.orderStatus !== 'cancelled') return res.status(400).send('Order is not cancelled');
+
+    // Restore previous status
+    order.orderStatus = order.previousStatus || 'pending'; // fallback to pending if missing
+    order.previousStatus = undefined; // clear it after restore
+    await order.save();
+
+    res.redirect('/manager/orders');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error restoring order');
   }
 });
 

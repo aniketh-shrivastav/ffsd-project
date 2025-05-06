@@ -25,7 +25,13 @@
               <div class="item-details">
                 <h3>Order ID: <%= order._id %></h3>
                 <p><strong>Placed on:</strong> <%= new Date(order.placedAt).toLocaleDateString() %></p>
-                <p><strong>Status:</strong> <%= order.orderStatus %></p>
+                <p><strong>Status:</strong>
+                  <% if (["pending", "confirmed", "shipped"].includes(order.orderStatus)) { %>
+                    <span style="color: orange;"><%= order.orderStatus %></span>
+                  <% } else { %>
+                    <span style="color: green;"><%= order.orderStatus %></span>
+                  <% } %>
+                </p>
                 <p><strong>Total Amount:</strong> ₹<%= order.totalAmount %></p>
                 <p><strong>Items:</strong></p>
                 <ul>
@@ -39,8 +45,29 @@
         <% } %>
       </ul>
 
-        <h2>Past Orders</h2>
-        <ul id="past-orders" class="parts-list"></ul>
+      <h2>Past Orders</h2>
+      <ul id="past-orders" class="parts-list">
+        <% if (pastOrders.length === 0) { %>
+          <p class="no-items">No past orders found.</p>
+        <% } else { %>
+          <% pastOrders.forEach(order => { %>
+            <li class="history-item">
+              <div class="item-details">
+                <h3>Order ID: <%= order._id %></h3>
+                <p><strong>Placed on:</strong> <%= new Date(order.placedAt).toLocaleDateString() %></p>
+                <p><strong>Status:</strong> <%= order.orderStatus %></p>
+                <p><strong>Total Amount:</strong> ₹<%= order.totalAmount %></p>
+                <p><strong>Items:</strong></p>
+                <ul>
+                  <% order.items.forEach(item => { %>
+                    <li><%= item.name %> x <%= item.quantity %> (₹<%= item.price %>)</li>
+                  <% }) %>
+                </ul>
+              </div>
+            </li>
+          <% }) %>
+        <% } %>
+      </ul>
 
         <h2>Upcoming Services</h2>
         <ul id="upcoming-services" class="parts-list">

@@ -8,6 +8,14 @@
     .tab-active { background-color: #007bff; color: #fff; }
     .hidden { display: none; }
     .btn-cancel { background: #ff4444; color: white; border: none; padding: 5px 10px; cursor: pointer; }
+    .btn-cancel {
+      background: #ff4444;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -27,7 +35,46 @@
 
     <!-- Orders (Empty for now) -->
     <div id="ordersTab">
-      <p>No order data available yet.</p>
+      <table class="order-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Seller</th>
+            <th>Customer</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% orders.forEach(o => { %>
+            <% o.items.forEach(item => { %>
+              <tr>
+                <td><%= o._id %></td>
+                <td>
+                  <%= item.seller?.name %> 
+                  (<%= item.seller?.email %>)
+                </td>
+                <td>
+                  <%= o.userId?.name %> 
+                  (<%= o.userId?.email %>)
+                </td>
+                <td><%= o.orderStatus %></td>
+                <td>
+                  <% if (o.orderStatus !== 'cancelled') { %>
+                    <form action="/manager/cancel-order/<%= o._id %>" method="POST" onsubmit="return confirm('Cancel this order?')">
+                      <button type="submit" class="btn-cancel">Cancel</button>
+                    </form>
+                  <% } else { %>
+                    <form action="/manager/restore-order/<%= o._id %>" method="POST" onsubmit="return confirm('Restore this order?')">
+                      <button type="submit" class="btn-cancel" style="background: #28a745;">Restore</button>
+                    </form>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          <% }) %>
+        </tbody>
+      </table>
     </div>
 
    <!-- Services Booked -->
