@@ -29,7 +29,7 @@
               <p>No products available.</p>
             <% } else { %>
               <% products.forEach(product => { %>
-                <div class="part">
+                <div class="part" data-name="<%= product.name %>" data-category="<%= product.category %>">
                   <div class="card mb-4 shadow-sm">
                     <img src="<%= product.image %>" class="card-img-top" alt="<%= product.name %>">
                     <div class="card-body">
@@ -70,6 +70,7 @@
             <p>&copy; 2025 AutoCustomizer. All Rights Reserved.</p>
         </div>
     </footer>
+ 
 
     <script src="/scripts/customerIndex.js"></script>
 
