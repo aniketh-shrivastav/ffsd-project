@@ -128,8 +128,22 @@ router.get("/earnings", serviceOnly, (req, res) => {
 router.get("/customerCommunication", serviceOnly, (req, res) => {
   res.render("service/customerCommunication");
 });
-router.get("/reviews", serviceOnly, (req, res) => {
-  res.render("service/reviews");
+router.get("/reviews", serviceOnly, async (req, res) => {
+  try {
+    // Get reviews for the currently logged-in service provider
+    const reviews = await ServiceBooking.find({
+      providerId: req.session.user.id,
+      rating: { $exists: true },
+      review: { $exists: true }
+    })
+    .populate("customerId", "name profileImage") // populate name and optional image
+    .sort({ createdAt: -1 }); // optional: show latest first
+
+    res.render("service/reviews", { reviews });
+  } catch (error) {
+    console.error("Failed to load reviews:", error);
+    res.status(500).send("Error loading reviews");
+  }
 });
 
 // DELETE /service/profile/delete/:id

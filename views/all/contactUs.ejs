@@ -9,36 +9,44 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/styles/all.css">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; padding: 20px; }
-        form { max-width: 400px; margin: auto; }
+        .bg-container{
+            background-image: radial-gradient(#4b4a4a, #2d2b2b);
+            height: 100vh;
+            font-family: Arial, sans-serif; padding: 20px;
+            color: white;
+        }
+        form { max-width: 400px; margin: auto;}
         label, input, textarea { display: block; width: 100%; margin-bottom: 10px; }
-        .review-container {border-style: none; border-radius: 20px ; }
-        button { background-color:  rgb(250, 182, 73); color: white; padding: 10px; border: none; cursor: pointer; height: 40px; border-radius: 5px; }
+        .review-container {border-style: none; border-radius: 20px ;
+            background-color: rgb(51, 49, 49);  }
+        button { background-color:  #1E1E2D; color: white; padding: 10px; border: none; cursor: pointer; height: 40px; border-radius: 5px; width: 40%; margin-top: 12px;}
     </style>
 </head>
 <body>
-    <%- include("../partials/allHeaders") %>
-    <div class="container">
-        <div class="row">
-            <div class="col-12 col-md-8 col-lg-6 p-3 m-md-auto mt-5 mt-md-4 mt-lg-5 shadow review-container">
-                <div class="text-center mt-3">
-                    <h2>Contact Us</h2>
+    <div class="bg-container">
+        <%- include("../partials/allHeaders") %>
+        <div class="container">
+            <div class="row">
+                <div class="col-12 col-md-8 col-lg-6 p-3 m-md-auto mt-5 mt-md-4 mt-lg-5 shadow review-container">
+                    <div class="text-center mt-3">
+                        <h2>Contact Us</h2>
+                    </div>
+                    <form method="POST" action="/contactus">
+                        <label for="name">Name:</label>
+                        <input type="text" id="name" name="name" required>
+                        
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" class="text-secondary" required>
+                        
+                        <label for="subject">Subject:</label>
+                        <input type="text" id="subject" name="subject" required>
+                        
+                        <label for="message">Message:</label>
+                        <textarea id="message" name="message" required></textarea>
+                        
+                        <button class="mb-3" type="submit">Submit</button>
+                    </form>
                 </div>
-                <form method="POST" action="/contactus">
-                    <label for="name">Name:</label>
-                    <input type="text" id="name" name="name" required>
-                    
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" name="email" class="text-secondary" required>
-                    
-                    <label for="subject">Subject:</label>
-                    <input type="text" id="subject" name="subject" required>
-                    
-                    <label for="message">Message:</label>
-                    <textarea id="message" name="message" required></textarea>
-                    
-                    <button class="mb-3" type="submit">Submit</button>
-                </form>
             </div>
         </div>
     </div>

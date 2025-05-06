@@ -15,90 +15,34 @@
         <h1>Reviews & Ratings</h1>
         <div class="reviews-container">
            
-            <div class="review-card">
-                <div class="review-header">
-                   
+            <% reviews.forEach(review => { %>
+                <div class="review-card">
+                  <div class="review-header">
                     <div class="user-info">
-                        <span class="user-name">Karthick</span>
-                        <div class="rating">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star-half-alt"></i>
-                            <span class="rating-value">4.5</span>
-                        </div>
+                      <span class="user-name"><%= review.customerId.name %></span>
+              
+                      <div class="rating">
+                        <% const fullStars = Math.floor(review.rating); %>
+                        <% const halfStar = review.rating % 1 >= 0.5; %>
+              
+                        <% for (let i = 0; i < fullStars; i++) { %>
+                          <i class="fas fa-star"></i>
+                        <% } %>
+                        <% if (halfStar) { %>
+                          <i class="fas fa-star-half-alt"></i>
+                        <% } %>
+                        <% for (let i = fullStars + halfStar; i < 5; i++) { %>
+                          <i class="far fa-star"></i>
+                        <% } %>
+                        <span class="rating-value"><%= review.rating.toFixed(1) %></span>
+                      </div>
                     </div>
+                  </div>
+              
+                  <p class="review-text">"<%= review.review %>"</p>
+                  <span class="review-date"><%= new Date(review.createdAt).toLocaleDateString() %></span>
                 </div>
-                <p class="review-text">
-                    "Great service! The team was very professional and completed the job on time. Highly recommend!"
-                </p>
-                <span class="review-date">March 10, 2025</span>
-            </div>
-
-            
-            <div class="review-card">
-                <div class="review-header">
-                  
-                    <div class="user-info">
-                        <span class="user-name">Charan</span>
-                        <div class="rating">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <span class="rating-value">5.0</span>
-                        </div>
-                    </div>
-                </div>
-                <p class="review-text">
-                    "Absolutely fantastic experience. The quality of work exceeded my expectations. Will definitely use again!"
-                </p>
-                <span class="review-date">January 25, 2025</span>
-            </div>
-            
-            <div class="review-card">
-                <div class="review-header">
-                   
-                    <div class="user-info">
-                        <span class="user-name">Sharan</span>
-                        <div class="rating">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star-half-alt"></i>
-                            <span class="rating-value">4.5</span>
-                        </div>
-                    </div>
-                </div>
-                <p class="review-text">
-                    "Good service. The team was professional."
-                </p>
-                <span class="review-date">January 11, 2025</span>
-            </div>
-            
-            <div class="review-card">
-                <div class="review-header">
-                   
-                    <div class="user-info">
-                        <span class="user-name">Pranav</span>
-                        <div class="rating">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star-half-alt"></i>
-                            <span class="rating-value">4.5</span>
-                        </div>
-                    </div>
-                </div>
-                <p class="review-text">
-                    "Nice Service!Very useful ."
-                </p>
-                <span class="review-date">December 15, 2024</span>
-            </div>
+              <% }) %>
 
           
         </div>

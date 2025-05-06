@@ -1,57 +1,85 @@
 const ServiceBooking = require("../models/serviceBooking");
+const User = require("../models/User");
+const CustomerProfile = require('../models/CustomerProfile');
+const SellerProfile = require('../models/sellerProfile');
 
 exports.getProfileData = async (req, res) => {
   try {
-      const userId = req.params.id;
-      let user = await Customer.findById(userId).populate('userId');
-      let role = 'Customer', details = '';
+    const id = req.params.id;
+    let user = null;
+    let role = null;
+    let details = '';
+    let profilePicture = '';
+    let name = '', email = '', phone = '';
 
-      if (!user) {
-          user = await Seller.findById(userId).populate('sellerId');
-          role = 'Seller';
+    // Check CustomerProfile
+    let customer = await CustomerProfile.findById(id).populate('userId');
+    if (customer) {
+      user = customer.userId;
+      role = 'Customer';
+      profilePicture = customer.profilePicture || user.profilePicture || 'https://via.placeholder.com/80';
+      name = user.name;
+      email = user.email;
+      phone = user.phone;
+
+      details = `
+        <p><strong>Address:</strong> ${customer.address || 'N/A'}</p>
+        <p><strong>District:</strong> ${customer.district || 'N/A'}</p>
+        <p><strong>Car Model:</strong> ${customer.carModel || 'N/A'}</p>
+      `;
+    }
+
+    // Check SellerProfile
+    if (!user) {
+      let seller = await SellerProfile.findById(id).populate('sellerId');
+      if (seller) {
+        user = seller.sellerId;
+        role = 'Seller';
+        profilePicture = user.profilePicture || 'https://via.placeholder.com/80';
+        name = user.name;
+        email = user.email;
+        phone = user.phone;
+
+        details = `
+          <p><strong>Owner:</strong> ${seller.ownerName || 'N/A'}</p>
+          <p><strong>Store Address:</strong> ${seller.address || 'N/A'}</p>
+        `;
       }
-      if (!user) {
-          user = await ServiceProvider.findById(userId);
-          role = 'Service Provider';
+    }
+
+    // Check if it's a service provider directly in User
+    if (!user) {
+      let serviceProvider = await User.findById(id);
+      if (serviceProvider && serviceProvider.role === 'service-provider') {
+        user = serviceProvider;
+        role = 'Service Provider';
+        profilePicture = user.profilePicture || 'https://via.placeholder.com/80';
+        name = user.workshopName || user.name;
+        email = user.email;
+        phone = user.phone;
+
+        const services = user.servicesOffered?.map(s => `<li>${s.name} - ₹${s.cost}</li>`).join('') || '';
+        details = `
+          <p><strong>District:</strong> ${user.district || 'N/A'}</p>
+          <h4>Services:</h4><ul>${services}</ul>
+        `;
       }
+    }
 
-      if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
-      const profilePicture = user.profilePicture || user.userId?.profilePicture || user.sellerId?.profilePicture || 'https://via.placeholder.com/80';
-      const name = user.name || user.userId?.name || user.sellerId?.name;
-      const email = user.email || user.userId?.email || user.sellerId?.email;
-      const phone = user.phone || user.userId?.phone || user.sellerId?.phone;
+    res.json({
+      profilePicture,
+      name,
+      email,
+      phone,
+      role,
+      extraDetails: details
+    });
 
-      if (role === 'Customer') {
-          details = `
-              <p><strong>Address:</strong> ${user.address || 'N/A'}</p>
-              <p><strong>District:</strong> ${user.district || 'N/A'}</p>
-              <p><strong>Car Model:</strong> ${user.carModel || 'N/A'}</p>
-          `;
-      } else if (role === 'Seller') {
-          details = `
-              <p><strong>Owner:</strong> ${user.ownerName || 'N/A'}</p>
-              <p><strong>Store Address:</strong> ${user.address || 'N/A'}</p>
-          `;
-      } else if (role === 'Service Provider') {
-          const services = user.servicesOffered?.map(s => `<li>${s.name} - ₹${s.cost}</li>`).join('') || '';
-          details = `
-              <p><strong>District:</strong> ${user.district || 'N/A'}</p>
-              <h4>Services:</h4><ul>${services}</ul>
-          `;
-      }
-
-      res.json({
-          profilePicture,
-          name,
-          email,
-          phone,
-          role,
-          extraDetails: details
-      });
   } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Internal Server Error' });
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
