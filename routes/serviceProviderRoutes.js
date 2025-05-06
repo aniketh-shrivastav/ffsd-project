@@ -20,9 +20,9 @@ const serviceOnly = [isAuthenticated, isService];
 // Routes
 
 // Dashboard
-router.get("/dashboardService", serviceOnly, (req, res) => {
-  res.render("service/dashboardService");
-});
+// router.get("/dashboardService", serviceOnly, (req, res) => {
+//   res.render("service/dashboardService");
+// });
 
 // Profile Settings
 router.get("/profileSettings", serviceOnly, async (req, res) => {

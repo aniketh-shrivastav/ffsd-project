@@ -1,26 +1,23 @@
-
 function toggleSidebar() {
     const sidebar = document.getElementById("sidebar");
     sidebar.classList.toggle("active");
 }
-
 
 function toggleNavLinks() {
     const navLinks = document.getElementById("navLinks");
     navLinks.classList.toggle("active");
 }
 
-
-document.addEventListener("DOMContentLoaded", function () {
-    
+document.addEventListener("DOMContentLoaded", function() {
+    // Service Distribution Pie Chart
     const pieCtx = document.getElementById('servicePieChart').getContext('2d');
     const servicePieChart = new Chart(pieCtx, {
         type: 'pie',
         data: {
-            labels: ['Car Wash', 'Oil Change', 'Brake Repair', 'Tire Rotation', 'AC Repair'],
+            labels: <%- JSON.stringify(serviceDistribution.map(s => s._id)) %>,
             datasets: [{
                 label: 'Service Distribution',
-                data: [30, 25, 20, 15, 10], 
+                data: <%- JSON.stringify(serviceDistribution.map(s => s.count)) %>,
                 backgroundColor: [
                     '#1abc9c',
                     '#3498db',
@@ -42,15 +39,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    
+    // Earnings Bar Chart
     const barCtx = document.getElementById('earningsBarChart').getContext('2d');
     const earningsBarChart = new Chart(barCtx, {
         type: 'bar',
         data: {
-            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], 
+            labels: <%- JSON.stringify(earningsData.map(e => `Week ${e._id}`)) %>,
             datasets: [{
-                label: 'Earnings',
-                data: [1500, 2200, 1800, 2500], 
+                label: 'Earnings (₹)',
+                data: <%- JSON.stringify(earningsData.map(e => e.total)) %>,
                 backgroundColor: '#1abc9c',
                 borderWidth: 1
             }]
@@ -63,20 +60,20 @@ document.addEventListener("DOMContentLoaded", function () {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Earnings ($)'
+                        text: 'Earnings (₹)'
                     }
                 },
                 x: {
                     title: {
                         display: true,
-                        text: 'Weeks '
+                        text: 'Week'
                     }
                 }
             },
             plugins: {
                 title: {
                     display: true,
-                    text: 'Monthly Earnings Overview (Weekly Basis)'
+                    text: 'Weekly Earnings Overview'
                 }
             }
         }

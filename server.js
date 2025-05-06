@@ -4,19 +4,11 @@ const path = require("path");
 const cors = require("cors");
 const connectDB = require("./db");
 const User = require("./models/User");
+const dashboardRoutes = require("./routes/dashboardRoutes");
  //Import the User model
 
 const app = express();
 connectDB();
-
-// Middleware Setup
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-app.use(express.static(__dirname));
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
 
 app.use(
   session({
@@ -26,6 +18,16 @@ app.use(
     cookie: { secure: false },
   })
 );
+
+// Middleware Setup
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+app.use(express.static(__dirname));
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
+app.use("/service", dashboardRoutes);
 
 
 // Routes
