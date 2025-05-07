@@ -338,13 +338,15 @@ footer p {
                   </td>
                   <td>
                     <div class="form-inline">
-                      <select class="status-select">
+                        <select class="status-select" <%= (order.orderStatus === 'delivered' || order.orderStatus === 'cancelled') ? 'disabled' : '' %>>
                         <option value="pending" <%= order.orderStatus === 'pending' ? 'selected' : '' %>>Pending</option>
                         <option value="confirmed" <%= order.orderStatus === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
                         <option value="shipped" <%= order.orderStatus === 'shipped' ? 'selected' : '' %>>Shipped</option>
                         <option value="delivered" <%= order.orderStatus === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                        <option value="cancelled" <%= order.orderStatus === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
                       </select>
-                      <button type="button" class="btn update-status-btn">Update</button>
+                      <button type="button" class="btn update-status-btn"
+  <%= (order.orderStatus === 'delivered' || order.orderStatus === 'cancelled') ? 'disabled' : '' %>>Update</button>
                     </div>
                   </td>
                 </tr>

@@ -9,6 +9,7 @@ const { storage } = require("../config/cloudinaryConfig");
 const upload = multer({ storage });
 const Product = require("../models/Product");
 const Order = require('../models/Orders');
+const Cart = require("../models/Cart");
 
 
 // Middleware to ensure seller access only
@@ -255,10 +256,24 @@ router.get("/productmanagement", isAuthenticated, isSeller, async (req, res) => 
   }
 });
 
-router.post("/delete-product/:id", isAuthenticated, isSeller, (req, res) => {
-  const productId = parseInt(req.params.id);
-  products1 = products1.filter(product => product.id !== productId);
-  res.redirect("/Seller/productmanagement");
+router.post("/delete-product/:id", isAuthenticated, isSeller, async (req, res) => {
+  try {
+    const productId = req.params.id;
+
+    // Step 1: Delete product from Product collection
+    await Product.findByIdAndDelete(productId);
+
+    // Step 2: Remove product from all carts
+    await Cart.updateMany(
+      { "items.productId": productId },
+      { $pull: { items: { productId: productId } } }
+    );
+
+    res.redirect("/Seller/productmanagement");
+  } catch (err) {
+    console.error("Error deleting product:", err);
+    res.status(500).send("Failed to delete product");
+  }
 });
 
 router.post('/orders/:orderId/status', isAuthenticated, isSeller, async (req, res) => {
@@ -270,6 +285,11 @@ router.post('/orders/:orderId/status', isAuthenticated, isSeller, async (req, re
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    // 🚫 Prevent update if already delivered or cancelled
+    if (order.orderStatus === 'delivered' || order.orderStatus === 'cancelled') {
+      return res.status(400).json({ success: false, message: `Cannot change status after it's marked as ${order.orderStatus}` });
     }
 
     // Save previous status before updating

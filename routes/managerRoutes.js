@@ -45,13 +45,16 @@ router.get("/dashboard", isAuthenticated, isManager, async (req, res) => {
       Product.find({ status: "rejected" }).populate("seller")
     ]);
 
-    // ✅ Aggregate earnings
+    // ✅ Sum orders where status is "pending"
     const orderEarningsResult = await Order.aggregate([
+      { $match: { orderStatus: "pending" } },
       { $group: { _id: null, total: { $sum: "$totalAmount" } } }
     ]);
     const orderEarnings = orderEarningsResult[0]?.total || 0;
 
+    // ✅ Sum services where status is "Ready"
     const serviceEarningsResult = await ServiceBooking.aggregate([
+      { $match: { status: "Ready" } },
       { $group: { _id: null, total: { $sum: "$totalCost" } } }
     ]);
     const serviceEarnings = serviceEarningsResult[0]?.total || 0;

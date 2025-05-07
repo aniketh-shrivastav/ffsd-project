@@ -102,18 +102,12 @@
         <p class="number"><%= totalUsers %></p>
       </div>
       <div class="stat-card">
-        <h3>Platform Activity</h3>
-        <p class="number">856 active now</p>
-      </div>
-      <div class="stat-card">
         <h3>Total Earnings</h3>
-        <p class="number">₹45,678</p>
-        <p class="trend up">+12% this month</p>
+        <p class="number">₹<%= totalEarnings.toFixed(2) %></p>
       </div>
       <div class="stat-card">
         <h3>Commission (20%)</h3>
-        <p class="number">₹9,135</p>
-        <p class="trend up">+12% this month</p>
+        <p class="number">₹<%= commission.toFixed(2) %></p>
       </div>
     </div>
 
