@@ -60,34 +60,39 @@ router.get("/booking", customerOnly, async (req, res) => {
       "name servicesOffered district cost"
     );
 
-    const uniqueServices = new Set();
-    const uniqueDistricts = new Set();
+    const uniqueServicesSet = new Set();
+    const uniqueDistrictsSet = new Set();
     const serviceProviders = [];
-    const serviceCostMap = {}; // ✅ Create service cost map
+    const serviceCostMap = {};
 
     serviceProvidersData.forEach(provider => {
       if (provider.servicesOffered && provider.servicesOffered.length > 0) {
         provider.servicesOffered.forEach(service => {
           if (service.name) {
-            uniqueServices.add(service.name);
+            uniqueServicesSet.add(service.name);
+            // Save cost only if it's not already stored
             if (!serviceCostMap[service.name]) {
               serviceCostMap[service.name] = service.cost;
             }
           }
         });
-        if (provider.district) uniqueDistricts.add(provider.district);
+        if (provider.district) uniqueDistrictsSet.add(provider.district);
         serviceProviders.push(provider);
       }
     });
 
+    // ✅ Convert Sets to sorted Arrays
+    const uniqueServices = Array.from(uniqueServicesSet).sort((a, b) => a.localeCompare(b));
+    const uniqueDistricts = Array.from(uniqueDistrictsSet).sort((a, b) => a.localeCompare(b)); // Sorted districts!
+
     res.render("customer/booking", {
-      uniqueServices: Array.from(uniqueServices),
-      uniqueDistricts: Array.from(uniqueDistricts),
+      uniqueServices,
+      uniqueDistricts,
       serviceProviders,
       customerProfile,
       selectedServiceType: "",
       selectedDistrict: "",
-      serviceCostMap: JSON.stringify(serviceCostMap) // ✅ Add this
+      serviceCostMap: JSON.stringify(serviceCostMap)
     });
   } catch (error) {
     console.error("Error rendering booking page:", error);
