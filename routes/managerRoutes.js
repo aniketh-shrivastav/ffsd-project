@@ -61,16 +61,20 @@ router.get("/dashboard", isAuthenticated, isManager, async (req, res) => {
 router.get('/orders', isAuthenticated, isManager, async (req, res) => {
   try {
     // Fetch Bookings
-    const bookings = await ServiceBooking.find()
-      .populate('customerId')
-      .populate('providerId')
-      .sort({ createdAt: -1 });
-
-    // Fetch Orders
-    const orders = await Order.find()
-      .populate('userId') // customer
-      .populate('items.seller') // sellers inside items array
-      .sort({ placedAt: -1 });
+    const bookings = (await ServiceBooking.find()
+    .populate('customerId')
+    .populate('providerId')
+    .sort({ createdAt: -1 })
+  ).filter(b => b.customerId && !b.customerId.suspended && b.providerId && !b.providerId.suspended);
+  
+  const orders = (await Order.find()
+    .populate('userId')
+    .populate('items.seller')
+    .sort({ placedAt: -1 })
+  ).filter(o =>
+    o.userId && !o.userId.suspended &&
+    o.items.every(item => item.seller && !item.seller.suspended)
+  );
 
     res.render('manager/orders', { bookings, orders });
 

@@ -120,8 +120,43 @@ router.post('/updateMultipleBookingStatus', serviceOnly, async (req, res) => {
 });
 
 // Earnings
-router.get("/earnings", serviceOnly, (req, res) => {
-  res.render("service/earnings");
+router.get("/earnings", serviceOnly, async (req, res) => {
+  try {
+    const providerId = req.session.user.id;
+
+    // Get all bookings for this provider with status "Ready"
+    const completedBookings = await ServiceBooking.find({
+      providerId: providerId,
+      status: "Ready",
+      totalCost: { $exists: true }
+    });
+
+    const totalEarnings = completedBookings.reduce((sum, booking) => sum + booking.totalCost, 0);
+
+    // Assuming all Ready bookings are considered for payout
+    const pendingPayouts = totalEarnings; // You can change this if there's a status or flag to indicate if it's paid or not
+
+    // Available balance is 80% after 20% commission deduction
+    const availableBalance = Math.round(pendingPayouts * 0.8);
+
+    const transactions = completedBookings.map(booking => ({
+      date: booking.date.toLocaleDateString(),
+      amount: Math.round(booking.totalCost * 0.8),
+      status: "Ready" // You can expand this logic later
+    }));
+
+    const payoutData = {
+      totalEarnings,
+      pendingPayouts,
+      availableBalance,
+      transactions
+    };
+
+    res.render("service/earnings", { payoutData });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
 });
 
 // Customer Communication
