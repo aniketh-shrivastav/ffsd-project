@@ -101,12 +101,14 @@
           <td><%= b.providerId?.name %> (<%= b.providerId?.email %>)</td>
           <td><%= b.status %></td>
           <td>
-            <% if (b.status !== 'rejected-by-admin') { %>
+            <% if (b.status === 'Rejected') { %>
+              <form action="/manager/restore-booking/<%= b._id %>" method="POST" onsubmit="return confirm('Restore this service?')">
+                <button type="submit" class="btn-cancel" style="background: #28a745;">Restore</button>
+              </form>
+            <% } else { %>
               <form action="/manager/cancel-booking/<%= b._id %>" method="POST" onsubmit="return confirm('Cancel this service?')">
                 <button type="submit" class="btn-cancel">Cancel</button>
               </form>
-            <% } else { %>
-              <span style="color: red;">Rejected</span>
             <% } %>
           </td>
         </tr>

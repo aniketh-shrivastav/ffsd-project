@@ -304,86 +304,107 @@ footer p {
     </style>
 </head>
 <body>
-
     <%- include('../partials/navbar') %>
-
+  
     <div class="container">
-        <h1>Order Management</h1>
-
-        <table>
-            <thead>
+      <h1>Order Management</h1>
+  
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer Name</th>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Delivery Address</th> <!-- ✅ Added -->
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (orders && orders.length > 0) { %>
+            <% orders.forEach(order => { %>
+              <% order.items.forEach(item => { %> <!-- For multiple products in one order -->
                 <tr>
-                    <th>Order ID</th>
-                    <th>Customer Name</th>
-                    <th>Product</th>
-                    <th>Quantity</th>
-                    <th>Status</th>
-                    <th>Action</th>
+                  <td><%= order._id %></td>
+                  <td><%= order.userId?.name %></td>
+                  <td><%= item.name %></td>
+                  <td><%= item.quantity %></td>
+                  <td><%= order.deliveryAddress %></td> <!-- ✅ Show deliveryAddress -->
+                  <td>
+                    <span class="status <%= (order.orderStatus || '').toLowerCase() %>">
+                      <%= order.orderStatus %>
+                    </span>
+                  </td>
+                  <td>
+                    <div class="form-inline">
+                      <select class="status-select">
+                        <option value="pending" <%= order.orderStatus === 'pending' ? 'selected' : '' %>>Pending</option>
+                        <option value="confirmed" <%= order.orderStatus === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
+                        <option value="shipped" <%= order.orderStatus === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                        <option value="delivered" <%= order.orderStatus === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                      </select>
+                      <button type="button" class="btn update-status-btn">Update</button>
+                    </div>
+                  </td>
                 </tr>
-            </thead>
-            <tbody>
-                <% if (orders && orders.length > 0) { %>
-                    <% orders.forEach(order => { %>
-                        <tr>
-                            <td><%= order.id %></td>
-                            <td><%= order.customerName %></td>
-                            <td><%= order.product %></td>
-                            <td><%= order.quantity %></td>
-                            <td>
-                                <span class="status <%= order.status.toLowerCase() %>">
-                                    <%= order.status %>
-                                </span>
-                            </td>
-                            <td>
-                                <div class="form-inline">
-                                    <select class="status-select">
-                                        <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
-                                        <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
-                                        <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                                    </select>
-                                    <button type="button" class="btn update-status-btn">Update</button>
-                                </div>
-                            </td>
-                        </tr>
-                    <% }) %>
-                <% } else { %>
-                    <tr>
-                        <td colspan="6" style="text-align: center; color: #888;">
-                            No orders available.
-                        </td>
-                    </tr>
-                <% } %>
-            </tbody>
-        </table>
+              <% }) %>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="7" style="text-align: center; color: #888;">
+                No orders available.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
     </div>
-
+  
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Find all update buttons
-            const updateButtons = document.querySelectorAll('.update-status-btn');
-            
-            // Add click event listener to each button
-            updateButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    // Get the selected status from the dropdown
-                    const row = this.closest('tr');
-                    const statusSelect = row.querySelector('.status-select');
-                    const newStatus = statusSelect.value;
-                    
-                    // Find the status element to update
-                    const statusDisplay = row.querySelector('.status');
-                    
-                    // Remove all existing status classes
-                    statusDisplay.classList.remove('pending', 'shipped', 'delivered');
-                    
-                    // Add the new status class
-                    statusDisplay.classList.add(newStatus.toLowerCase());
-                    
-                    // Update the text content
-                    statusDisplay.textContent = newStatus;
-                });
-            });
+      document.addEventListener('DOMContentLoaded', function() {
+        const updateButtons = document.querySelectorAll('.update-status-btn');
+  
+        updateButtons.forEach(button => {
+          button.addEventListener('click', function() {
+            const row = this.closest('tr');
+            const statusSelect = row.querySelector('.status-select');
+            const newStatus = statusSelect.value;
+            const statusDisplay = row.querySelector('.status');
+  
+            // Remove existing classes
+          // Remove existing classes
+statusDisplay.classList.remove('pending', 'confirmed', 'shipped', 'delivered');
+
+// Add new status class
+statusDisplay.classList.add(newStatus.toLowerCase());
+statusDisplay.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+
+// ✅ Send update to server
+const orderId = row.querySelector('td').textContent.trim(); // Get Order ID from first column
+
+fetch(`/seller/orders/${orderId}/status`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ newStatus })
+})
+.then(response => response.json())
+.then(data => {
+  if (data.success) {
+    alert('Order status updated successfully!');
+  } else {
+    alert('Failed to update order status');
+  }
+})
+.catch(error => {
+  console.error('Error updating status:', error);
+  alert('Error occurred!');
+});
+          });
         });
+      });
     </script>
-</body>
+  </body>
 </html>

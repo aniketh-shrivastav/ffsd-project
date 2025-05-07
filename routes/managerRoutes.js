@@ -176,13 +176,39 @@ router.post("/users/restore/:id", async (req, res) => {
 
 router.post('/cancel-booking/:id', isAuthenticated, isManager, async (req, res) => {
   try {
-    await ServiceBooking.findByIdAndUpdate(req.params.id, {
-      status: 'rejected-by-admin'
-    });
+    const booking = await ServiceBooking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).send('Booking not found');
+    }
+
+    // Save current status before rejecting
+    booking.previousStatus = booking.status;
+    booking.status = 'Rejected'; // Use the enum status "Rejected" as per your schema
+    await booking.save();
+
     res.redirect('/manager/orders');
   } catch (err) {
     console.error(err);
     res.status(500).send('Error cancelling booking');
+  }
+});
+
+router.post('/restore-booking/:id', isAuthenticated, isManager, async (req, res) => {
+  try {
+    const booking = await ServiceBooking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).send('Booking not found');
+    }
+
+    // Restore to previous status if exists, otherwise default to "Open"
+    booking.status = booking.previousStatus || "Open";
+    booking.previousStatus = undefined; // Clear previousStatus
+    await booking.save();
+
+    res.redirect('/manager/orders');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error restoring booking');
   }
 });
 
