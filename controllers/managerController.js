@@ -2,6 +2,7 @@ const ServiceBooking = require("../models/serviceBooking");
 const User = require("../models/User");
 const CustomerProfile = require('../models/CustomerProfile');
 const SellerProfile = require('../models/sellerProfile');
+const Order = require("../models/Orders");
 
 exports.getProfileData = async (req, res) => {
   try {
@@ -86,16 +87,32 @@ exports.getProfileData = async (req, res) => {
 
 exports.getPayments = async (req, res) => {
   try {
-    const serviceOrders = await ServiceBooking.find({ status: "Ready" }) // ✅ filter here
-      .populate("customerId", "name")
-      .populate("providerId", "name");
+    // Load only 'Ready' service bookings, excluding suspended users
+    const serviceOrders = (await ServiceBooking.find({ status: "Ready" })
+      .populate("customerId", "name suspended")
+      .populate("providerId", "name suspended")
+    ).filter(order =>
+      order.customerId && !order.customerId.suspended &&
+      order.providerId && !order.providerId.suspended
+    );
+
+    // Load product orders
+    const orders = (await Order.find()
+      .populate("userId", "name suspended") // Customer
+      .populate("items.seller", "name suspended") // Sellers
+      .sort({ placedAt: -1 })
+    ).filter(order =>
+      order.userId && !order.userId.suspended &&
+      order.items.every(item => item.seller && !item.seller.suspended)
+    );
 
     res.render("manager/payments", {
       serviceOrders,
-      orders: [] // Still empty
+      orders
     });
+
   } catch (err) {
-    console.error("Error fetching service orders:", err);
+    console.error("Error fetching payments data:", err);
     res.status(500).send("Internal Server Error");
   }
 };

@@ -223,6 +223,10 @@
       </div>
     <% } %>    
     <div class="payment-container" id="payment-selection" style="display: none;">
+      <h2>Order Summary</h2>
+      <div id="order-summary">
+        <!-- Items and total will be populated by JS -->
+      </div>
       <h2>Select Payment Method</h2>
       <div id="saved-payments" class="payment-method"></div>
       <label><input type="radio" name="payment-method" value="cod"> Cash on Delivery</label>
@@ -291,6 +295,52 @@
         console.error(err);
       });
     });
+
+    document.getElementById("checkout-btn").addEventListener("click", () => {
+      // Step 1: Show payment + order summary
+      document.getElementById("payment-selection").style.display = "block";
+    
+      // Grab cart items and compute summary
+      const cartItems = document.querySelectorAll(".cart-item");
+      let summaryHTML = "";
+      let totalCost = 0;
+    
+      cartItems.forEach(item => {
+        const name = item.querySelector(".item-details strong").innerText;
+        const priceText = item.querySelector(".item-details").innerText.match(/₹(\d+)/);
+        const price = priceText ? parseFloat(priceText[1]) : 0;
+        const quantity = parseInt(item.querySelector(".quantity-controls span").innerText);
+    
+        const itemTotal = price * quantity;
+        totalCost += itemTotal;
+    
+        summaryHTML += `
+          <p><strong>${name}</strong> — ₹${price} x ${quantity} = ₹${itemTotal}</p>
+        `;
+      });
+    
+      summaryHTML += `<h3 style="margin-top: 20px;">Total: ₹${totalCost}</h3>`;
+      document.getElementById("order-summary").innerHTML = summaryHTML;
+    });
+
+    // Step 2: When clicking "Confirm Payment"
+document.getElementById("confirm-payment").addEventListener("click", () => {
+  // Validate payment method selected
+  const selectedPayment = document.querySelector('input[name="payment-method"]:checked');
+  if (!selectedPayment) {
+    alert("Please select a payment method.");
+    return;
+  }
+
+  // Hide payment section
+  document.getElementById("payment-selection").style.display = "none";
+
+  // Show Place Order / Book Service section
+  document.getElementById("checkout-section").style.display = "block";
+
+  // Optional: show confirmation message
+  alert("Payment method confirmed! Please proceed to place your order.");
+});
   </script>
   <script src="/scripts/cart.js"></script>
 </body>

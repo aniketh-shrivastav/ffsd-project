@@ -61,16 +61,20 @@ router.get("/dashboard", isAuthenticated, isManager, async (req, res) => {
 router.get('/orders', isAuthenticated, isManager, async (req, res) => {
   try {
     // Fetch Bookings
-    const bookings = await ServiceBooking.find()
-      .populate('customerId')
-      .populate('providerId')
-      .sort({ createdAt: -1 });
-
-    // Fetch Orders
-    const orders = await Order.find()
-      .populate('userId') // customer
-      .populate('items.seller') // sellers inside items array
-      .sort({ placedAt: -1 });
+    const bookings = (await ServiceBooking.find()
+    .populate('customerId')
+    .populate('providerId')
+    .sort({ createdAt: -1 })
+  ).filter(b => b.customerId && !b.customerId.suspended && b.providerId && !b.providerId.suspended);
+  
+  const orders = (await Order.find()
+    .populate('userId')
+    .populate('items.seller')
+    .sort({ placedAt: -1 })
+  ).filter(o =>
+    o.userId && !o.userId.suspended &&
+    o.items.every(item => item.seller && !item.seller.suspended)
+  );
 
     res.render('manager/orders', { bookings, orders });
 
@@ -176,13 +180,39 @@ router.post("/users/restore/:id", async (req, res) => {
 
 router.post('/cancel-booking/:id', isAuthenticated, isManager, async (req, res) => {
   try {
-    await ServiceBooking.findByIdAndUpdate(req.params.id, {
-      status: 'rejected-by-admin'
-    });
+    const booking = await ServiceBooking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).send('Booking not found');
+    }
+
+    // Save current status before rejecting
+    booking.previousStatus = booking.status;
+    booking.status = 'Rejected'; // Use the enum status "Rejected" as per your schema
+    await booking.save();
+
     res.redirect('/manager/orders');
   } catch (err) {
     console.error(err);
     res.status(500).send('Error cancelling booking');
+  }
+});
+
+router.post('/restore-booking/:id', isAuthenticated, isManager, async (req, res) => {
+  try {
+    const booking = await ServiceBooking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).send('Booking not found');
+    }
+
+    // Restore to previous status if exists, otherwise default to "Open"
+    booking.status = booking.previousStatus || "Open";
+    booking.previousStatus = undefined; // Clear previousStatus
+    await booking.save();
+
+    res.redirect('/manager/orders');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error restoring booking');
   }
 });
 

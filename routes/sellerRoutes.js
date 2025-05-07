@@ -8,6 +8,7 @@ const multer = require("multer");
 const { storage } = require("../config/cloudinaryConfig");
 const upload = multer({ storage });
 const Product = require("../models/Product");
+const Order = require('../models/Orders');
 
 
 // Middleware to ensure seller access only
@@ -112,9 +113,20 @@ const ordersFilePath = path.join(__dirname, '../data', 'orders.json');
 const getOrders = () => JSON.parse(fs.readFileSync(ordersFilePath, 'utf8'));
 const saveOrders = (orders) => fs.writeFileSync(ordersFilePath, JSON.stringify(orders, null, 2), 'utf8');
 
-router.get("/orders", isAuthenticated, isSeller, (req, res) => {
-  const orders = getOrders();
-  res.render("Seller/orderManagement", { orders });
+router.get("/orders", isAuthenticated, isSeller, async (req, res) => {
+  try {
+    // Find only orders where *this seller* has items
+    const sellerId = req.session.user.id;
+
+    const orders = await Order.find({ "items.seller": sellerId })
+      .populate('userId', 'name email') // populate customer name + email
+      .sort({ placedAt: -1 });
+
+    res.render("Seller/orderManagement", { orders });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error loading orders');
+  }
 });
 
 // Earnings & Payouts
@@ -243,6 +255,30 @@ router.post("/delete-product/:id", isAuthenticated, isSeller, (req, res) => {
   const productId = parseInt(req.params.id);
   products1 = products1.filter(product => product.id !== productId);
   res.redirect("/Seller/productmanagement");
+});
+
+router.post('/orders/:orderId/status', isAuthenticated, isSeller, async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { newStatus } = req.body;
+
+    // Find order
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    // Save previous status before updating
+    order.previousStatus = order.orderStatus;
+    order.orderStatus = newStatus;
+
+    await order.save();
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 module.exports = router;

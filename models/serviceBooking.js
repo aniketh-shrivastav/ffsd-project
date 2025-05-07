@@ -20,6 +20,7 @@ const ServiceBookingSchema = new mongoose.Schema({
     enum: ["Open", "Confirmed", "Ready", "Rejected"],
     default: "Open"
   },
+  previousStatus: { type: String },
   rating: {
     type: Number,
     min: 1,
