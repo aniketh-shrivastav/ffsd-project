@@ -205,15 +205,11 @@
               <span><%= item.quantity %></span>
               <button onclick="updateQuantity('<%= item.productId %>', 'increase')">+</button>
             </div>
-            <button class="remove-button" onclick="removeItem('<%= item.productId %>')">Remove</button>
           </div>
         <% }) %>
       </div>
     <% } %>
     <div style="text-align: center; margin: 20px;">
-      <button id="buyproducts-btn" style="padding: 10px 20px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
-        Buy Products
-      </button>
     </div>
     <% if (items.length > 0) { %>
       <div style="text-align: center; margin: 20px;">
@@ -238,7 +234,6 @@
       <h2>Choose an Option</h2>
       <div class="checkout-options">
         <button id="place-order">Place Order</button>
-        <button id="book-service">Book a Service Provider</button>
       </div>
     </div>
   </main>
@@ -284,11 +279,6 @@
       .then(res => {
         if (!res.ok) throw new Error("Failed to place order");
         return res.json();
-      })
-      .then(data => {
-        alert("Order placed successfully!");
-        // Optionally redirect to orders page or homepage
-        window.location.href = "/customer/history"; 
       })
       .catch(err => {
         alert("Error placing order");

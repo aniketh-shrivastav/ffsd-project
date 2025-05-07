@@ -1,93 +1,89 @@
 const express = require("express");
 const router = express.Router();
+const fs = require("fs");
+const path = require("path");
+const db = require("../db"); // instead of creating a new sqlite3.Database
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
-const { body, validationResult } = require("express-validator");
 
-// Session timeout configuration (30 minutes)
-const SESSION_TIMEOUT = 30 * 60 * 1000;
+
 
 // ─────────────────────────────────────────────
 // GET Signup
 // ─────────────────────────────────────────────
 router.get("/signup", (req, res) => {
-  if (req.session.user) {
-    return redirectBasedOnRole(req.session.user.role, res);
-  }
-  res.render("signup", { 
-    error: null,
-    formData: {},
-    roles: ["customer", "seller", "service-provider", "manager"]
-  });
+  res.render("signup", { error: null });
 });
 
 // ─────────────────────────────────────────────
 // POST Signup
 // ─────────────────────────────────────────────
-router.post("/signup", [
-  // Validation middleware
-  body("email").isEmail().normalizeEmail(),
-  body("password").isLength({ min: 8 }),
-  body("phone").isMobilePhone(),
-  body("role").isIn(["customer", "seller", "service-provider", "manager"])
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).render("signup", {
-      error: errors.array()[0].msg,
-      formData: req.body,
-      roles: ["customer", "seller", "service-provider", "manager"]
-    });
-  }
-
+router.post("/signup", async (req, res) => {
   const { name, email, password, role, businessName, workshopName, phone } = req.body;
   const finalName = name || businessName || workshopName;
+  
+  if (!phone || !/^\d{10}$/.test(phone.trim())) {
+      error = "Phone number must be 10 digits.";
+  }
+  
+  
+
+  // Validation regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const nameRegex = /^[A-Za-z\s.-]+$/;
+
+  let error = null;
+  if (!finalName || !email || !password || !role) {
+      error = "All fields are required";
+  } else if (!emailRegex.test(email) || !email.endsWith(".com")) {
+      error = "Please enter a valid email ending in .com";
+  } else if (!nameRegex.test(finalName)) {
+      error = "Name should not contain numbers or special characters";
+  }
+
+  if (error) {
+      if (req.headers.accept.includes("application/json")) {
+          return res.status(400).json({ success: false, message: error });
+      } else {
+          return res.render("signup", { error });
+      }
+  }
 
   try {
-    // Check for existing user
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).render("signup", {
-        error: "Email already exists",
-        formData: req.body,
-        roles: ["customer", "seller", "service-provider", "manager"]
-      });
-    }
+      // Check if email already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+          error = "Email already exists";
+          if (req.headers.accept.includes("application/json")) {
+              return res.status(400).json({ success: false, message: error });
+          } else {
+              return res.render("signup", { error });
+          }
+      }
 
-    // Create new user
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const newUser = new User({
-      name: finalName,
-      email,
-      phone,
-      password: hashedPassword,
-      role,
-      ...(businessName && { businessName }),
-      ...(workshopName && { workshopName })
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Save user in MongoDB
+      const newUser = new User({
+        name: finalName,
+        email,
+        phone,  // <-- Added phone here
+        password: hashedPassword,
+        role,
     });
 
-    await newUser.save();
+      await newUser.save();
+      console.log("MongoDB user inserted:", newUser);
 
-    // Auto-login after signup
-    req.session.user = {
-      id: newUser._id,
-      name: newUser.name,
-      email: newUser.email,
-      phone: newUser.phone,
-      role: newUser.role
-    };
-    req.session.cookie.expires = new Date(Date.now() + SESSION_TIMEOUT);
-    req.session.save();
-
-    return redirectBasedOnRole(newUser.role, res);
-
+      if (req.headers.accept.includes("application/json")) {
+          return res.json({ success: true, message: "Signup successful. Redirecting to login..." });
+      } else {
+          return res.redirect("/login");
+      }
   } catch (error) {
-    console.error("Signup error:", error);
-    res.status(500).render("signup", {
-      error: "Server error. Please try again.",
-      formData: req.body,
-      roles: ["customer", "seller", "service-provider", "manager"]
-    });
+      console.error("MongoDB error:", error.message);
+      res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
@@ -95,72 +91,58 @@ router.post("/signup", [
 // GET Login
 // ─────────────────────────────────────────────
 router.get("/login", (req, res) => {
-  if (req.session.user) {
-    return redirectBasedOnRole(req.session.user.role, res);
-  }
-  res.render("login", { error: null });
+  res.render("login");
 });
 
 // ─────────────────────────────────────────────
 // POST Login
 // ─────────────────────────────────────────────
-router.post("/login", [
-  body("email").isEmail().normalizeEmail(),
-  body("password").exists()
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).render("login", { 
-      error: "Invalid credentials",
-      email: req.body.email
-    });
-  }
-
+router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).render("login", {
-        error: "Invalid credentials",
-        email: req.body.email
-      });
-    }
+      // Find user in MongoDB
+      const user = await User.findOne({ email });
+      if (!user) {
+          return res.status(401).json({ message: "Invalid credentials" });
+      }
 
-    if (user.suspended) {
-      return res.status(403).render("login", {
-        error: "Account suspended. Contact support.",
-        email: req.body.email
-      });
-    }
+      // Check if the user is suspended
+      if (user.suspended) {
+          return res.status(403).json({ message: "Your account is suspended. Contact support for assistance." });
+      }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).render("login", {
-        error: "Invalid credentials",
-        email: req.body.email
-      });
-    }
+      // Compare entered password with hashed password in MongoDB
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+          return res.status(401).json({ message: "Invalid credentials" });
+      }
 
-    // Successful login
-    req.session.user = {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role
+      // Store user session
+      req.session.user = {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
     };
-    req.session.cookie.expires = new Date(Date.now() + SESSION_TIMEOUT);
-    req.session.save();
 
-    return redirectBasedOnRole(user.role, res);
-
+      // Role-based redirection
+      switch (user.role) {
+          case "manager":
+              return res.redirect("/manager/dashboard");
+          case "customer":
+              return res.redirect("/customer/index");
+          case "seller":
+              return res.redirect("/Seller/dashboard");
+          case "service-provider":
+              return res.redirect("/service/dashboardService");
+          default:
+              return res.status(403).send("Unknown role");
+      }
   } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).render("login", {
-      error: "Server error. Please try again.",
-      email: req.body.email
-    });
+      console.error("MongoDB error:", error.message);
+      res.status(500).send("Internal server error");
   }
 });
 
@@ -168,64 +150,28 @@ router.post("/login", [
 // Static Page Routes
 // ─────────────────────────────────────────────
 router.get("/", (req, res) => {
-  res.render("all/index", { 
-    user: req.session?.user,
-    isAuthenticated: !!req.session.user
-  });
+  res.render("all/index", { user: req.session.user });
 });
 
 router.get("/contactus", (req, res) => {
-  res.render("all/contactus", { 
-    user: req.session?.user,
-    isAuthenticated: !!req.session.user
-  });
+  res.render("all/contactus", { user: req.session.user });
 });
 
 router.get("/feedback", (req, res) => {
-  res.render("all/feedback", { 
-    user: req.session?.user,
-    isAuthenticated: !!req.session.user
-  });
+  res.render("all/feedback", { user: req.session.user });
 });
 
 router.get("/faq", (req, res) => {
-  res.render("all/faq", { 
-    user: req.session?.user,
-    isAuthenticated: !!req.session.user
-  });
+  res.render("all/faq", { user: req.session.user });
 });
 
 // ─────────────────────────────────────────────
 // Logout
 // ─────────────────────────────────────────────
 router.get("/logout", (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error("Logout error:", err);
-      return res.status(500).send("Logout failed");
-    }
-    res.clearCookie("connect.sid");
-    res.redirect("/login");
+  req.session.destroy(() => {
+    res.redirect("/");
   });
 });
-
-// Helper function for role-based redirection
-function redirectBasedOnRole(role, res) {
-  const routes = {
-    "manager": "/manager/dashboard",
-    "customer": "/customer/index",
-    "seller": "/seller/dashboard",
-    "service-provider": "/service/dashboardService"
-  };
-
-  if (!routes[role]) {
-    return res.status(403).render("error", { 
-      message: "Unauthorized role access",
-      status: 403
-    });
-  }
-
-  return res.redirect(routes[role]);
-}
 
 module.exports = router;

@@ -92,7 +92,7 @@ exports.createOrderFromCart = async (req, res) => {
     res.status(201).json({ message: "Orders placed successfully", orders: createdOrders });
   } catch (err) {
     console.error("Order creation error:", err);
-    res.status(500).json({ message: "Failed to create orders" });
+    res.status(500).json({ message: "Failed to create orders Update customer Profile with complete" });
   }
 };
 
