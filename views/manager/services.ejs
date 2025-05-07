@@ -174,7 +174,6 @@
             <% serviceProviders.forEach(provider => { %>
                 <div class="profile-card service-provider">
                     <div class="profile-header">
-                        <img src="<%= provider.profilePicture || 'https://via.placeholder.com/80' %>" alt="<%= provider.name %>" class="profile-avatar">
                     </div>
                     <div class="profile-body">
                         <h3 class="profile-name"><%= provider.name %></h3>
@@ -201,7 +200,6 @@
             <% sellers.forEach(seller => { %>
                 <div class="profile-card seller">
                     <div class="profile-header">
-                        <img src="<%= seller.sellerId.profilePicture || 'https://via.placeholder.com/80' %>" alt="<%= seller.sellerId.name %>" class="profile-avatar">
                     </div>
                     <div class="profile-body">
                         <h3 class="profile-name"><%= seller.sellerId.name %></h3>
@@ -224,7 +222,6 @@
             <% customers.forEach(customer => { %>
                 <div class="profile-card customer">
                     <div class="profile-header">
-                        <img src="<%= customer.profilePicture || customer.userId.profilePicture || 'https://via.placeholder.com/80' %>" alt="<%= customer.userId.name %>" class="profile-avatar">
                     </div>
                     <div class="profile-body">
                         <h3 class="profile-name"><%= customer.userId.name %></h3>
@@ -265,7 +262,6 @@
                 const modalBody = document.getElementById('modalBody');
                 modalBody.innerHTML = `
                     <h2>${data.role} Profile</h2>
-                    <img src="${data.profilePicture}" alt="Profile Picture" width="100">
                     <p><strong>Name:</strong> ${data.name}</p>
                     <p><strong>Email:</strong> ${data.email}</p>
                     <p><strong>Phone:</strong> ${data.phone}</p>

@@ -45,12 +45,28 @@ router.get("/dashboard", isAuthenticated, isManager, async (req, res) => {
       Product.find({ status: "rejected" }).populate("seller")
     ]);
 
+    // ✅ Aggregate earnings
+    const orderEarningsResult = await Order.aggregate([
+      { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+    ]);
+    const orderEarnings = orderEarningsResult[0]?.total || 0;
+
+    const serviceEarningsResult = await ServiceBooking.aggregate([
+      { $group: { _id: null, total: { $sum: "$totalCost" } } }
+    ]);
+    const serviceEarnings = serviceEarningsResult[0]?.total || 0;
+
+    const totalEarnings = orderEarnings + serviceEarnings;
+    const commission = totalEarnings * 0.20;
+
     res.render("manager/dashboard", {
       totalUsers,
       userCounts: formattedCounts,
       pendingProducts,
       approvedProducts,
-      rejectedProducts
+      rejectedProducts,
+      totalEarnings,
+      commission
     });
   } catch (error) {
     console.error("Error loading dashboard:", error);
