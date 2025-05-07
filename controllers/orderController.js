@@ -26,6 +26,11 @@ exports.createOrderFromCart = async (req, res) => {
         return res.status(404).json({ message: `Product ${item.productId} not found.` });
       }
 
+      // Check stock before placing order
+      if (item.quantity > product.quantity) {
+        return res.status(400).json({ message: `Not enough stock for product ${product.name}. Available: ${product.quantity}` });
+      }
+
       orderItems.push({
         productId: product._id,
         name: product.name,
@@ -86,13 +91,21 @@ exports.createOrderFromCart = async (req, res) => {
       createdOrders.push(order);
     }
 
-    // Step 5: Clear cart
+    // Step 5: Reduce stock quantity for each product
+    for (const item of cart.items) {
+      await Product.findByIdAndUpdate(item.productId, { 
+        $inc: { quantity: -item.quantity }  // Decrease stock
+      });
+    }
+
+    // Step 6: Clear cart
     await Cart.deleteOne({ userId });
 
     res.status(201).json({ message: "Orders placed successfully", orders: createdOrders });
+
   } catch (err) {
     console.error("Order creation error:", err);
-    res.status(500).json({ message: "Failed to create orders Update customer Profile with complete" });
+    res.status(500).json({ message: "Failed to create orders. Update customer profile with complete info." });
   }
 };
 

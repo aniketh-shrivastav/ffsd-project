@@ -246,24 +246,24 @@
   <script>
     const userId = "<%= user.id %>";
 
-function updateQuantity(productId, action) {
-  fetch(`/api/cart/update/${userId}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ productId, action })
-  })
-  .then(res => {
-    if (!res.ok) throw new Error("Failed to update cart quantity");
-    return res.json();
-  })
-  .then(data => {
-    location.reload();
-  })
-  .catch(err => {
-    alert("Error updating cart");
-    console.error(err);
-  });
-}
+    function updateQuantity(productId, action) {
+      fetch(`/api/cart/update/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, action })
+      })
+      .then(async res => {
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to update cart quantity");
+        }
+        location.reload();
+      })
+      .catch(err => {
+        alert(err.message); // This will show "Not enough stock available" now
+        console.error(err);
+      });
+    }
 
 function removeItem(productId) {
   fetch(`/api/cart/remove/${userId}`, {
@@ -286,7 +286,7 @@ document.getElementById("place-order").addEventListener("click", () => {
     try {
       const data = await res.json();
       alert("Order placed successfully!");
-      location.href = "/customer/orders"; 
+      location.href = "/customer/history"; 
     } catch (e) {
       // In case no JSON response (e.g., 204 No Content)
       alert("Order placed successfully!");

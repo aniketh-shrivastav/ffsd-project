@@ -1,6 +1,7 @@
 const express = require("express");
 const Cart = require("../models/Cart");
 const router = express.Router();
+const Product = require("../models/Product");
 
 
 const customerOnly = (req, res, next) => {
@@ -44,41 +45,53 @@ router.post("/place-order/:userId", async (req, res) => {
 
 
 router.put("/update/:userId", customerOnly, async (req, res) => {
-    try {
-        console.log("Update route hit");
-  console.log("Params:", req.params);
-  console.log("Body:", req.body);
-      const { userId } = req.params;
-      const { productId, action } = req.body;
-  
-      const cart = await Cart.findOne({ userId });
-      if (!cart) {
-        return res.status(404).json({ success: false, message: "Cart not found" });
-      }
-  
-      const item = cart.items.find(item => item.productId === productId.toString());
-      if (!item) {
-        return res.status(404).json({ success: false, message: "Item not found in cart" });
-      }
-  
-      if (action === "increase") {
-        item.quantity += 1;
-      } else if (action === "decrease") {
-        item.quantity -= 1;
-        if (item.quantity <= 0) {
-          // Optional: Remove item if quantity is 0
-          cart.items = cart.items.filter(i => i.productId !== productId.toString());
-        }
-      } else {
-        return res.status(400).json({ success: false, message: "Invalid action" });
-      }
-  
-      await cart.save();
-      res.json({ success: true, message: "Cart updated", items: cart.items });
-    } catch (error) {
-      console.error("Cart update error:", error.message);
-      res.status(500).json({ success: false, message: "Error updating cart" });
+  try {
+    console.log("Update route hit");
+
+    const { userId } = req.params;
+    const { productId, action } = req.body;
+
+    const cart = await Cart.findOne({ userId });
+    if (!cart) {
+      return res.status(404).json({ success: false, message: "Cart not found" });
     }
-  });
+
+    const item = cart.items.find(item => item.productId === productId.toString());
+    if (!item) {
+      return res.status(404).json({ success: false, message: "Item not found in cart" });
+    }
+
+    // Step 1: Get the actual product from DB to check available stock
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    if (action === "increase") {
+      // Check if increasing exceeds stock
+      if (item.quantity + 1 > product.quantity) {
+        return res.status(400).json({ success: false, message: "Not enough stock available" });
+      }
+      item.quantity += 1;
+    } 
+    else if (action === "decrease") {
+      item.quantity -= 1;
+      if (item.quantity <= 0) {
+        // Remove item if quantity is 0
+        cart.items = cart.items.filter(i => i.productId !== productId.toString());
+      }
+    } 
+    else {
+      return res.status(400).json({ success: false, message: "Invalid action" });
+    }
+
+    await cart.save();
+    res.json({ success: true, message: "Cart updated", items: cart.items });
+
+  } catch (error) {
+    console.error("Cart update error:", error.message);
+    res.status(500).json({ success: false, message: "Error updating cart" });
+  }
+});
 
 module.exports = router;
