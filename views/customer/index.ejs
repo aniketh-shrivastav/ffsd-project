@@ -37,10 +37,10 @@
                       <p class="card-text">₹<%= product.price %></p>
                       <a href="/customer/product/<%= product._id %>" class="btn btn-sm btn-outline-primary">View Details</a>
                         <!-- Add to Cart Button -->
-                      <form action="/customer/cart/add" method="POST" id="add-to-cart-form">
-                      <input type="hidden" name="id" value="<%= product._id %>">
-                      <button type="submit" class="btn btn-primary mt-3">Add to Cart</button>
-                      </form>
+                       <form action="/customer/cart/add" method="POST" class="add-to-cart-form">
+                          <input type="hidden" name="id" value="<%= product._id %>">
+                          <button type="submit" class="btn btn-primary mt-3">Add to Cart</button>
+                        </form>
                     </div>
                   </div>
                 </div>
