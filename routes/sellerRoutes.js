@@ -194,9 +194,17 @@ let products1 = [];
 
 // Assuming this is in routes/seller.js
 
-router.post('/add-product', isAuthenticated, isSeller, upload.single('image'),async (req, res) => {
+router.post("/add-product", isAuthenticated, isSeller, upload.single("image"), async (req, res) => {
   try {
-    const {
+    const { name, price, description, category, brand, quantity, sku, compatibility } = req.body;
+
+    // ✅ `req.file.path` will NOT work with Cloudinary.
+    // ✅ Use req.file.path only for diskStorage
+    // ✅ Use req.file.path (CloudinaryStorage automatically sets this to the secure URL)
+    const imageUrl = req.file?.path;
+
+
+    const newProduct = new Product({
       name,
       price,
       description,
@@ -205,36 +213,32 @@ router.post('/add-product', isAuthenticated, isSeller, upload.single('image'),as
       quantity,
       sku,
       compatibility,
-    } = req.body;
+      image: imageUrl,
+      seller: req.session.user.id,
+    });
 
-    let imageUrl = '';
+    await newProduct.save();
+    res.redirect("/Seller/productmanagement");
+  } catch (error) {
+    console.error("Error adding product:", error.message);
+  console.error("Full Error Object:", JSON.stringify(error, null, 2));
 
-    // Upload image to Cloudinary if image is uploaded
-    if (req.file) {
-      imageUrl = req.file.path;
+  // ✅ If it's a Mongoose ValidationError, print field-wise errors
+  if (error.name === 'ValidationError') {
+    for (let field in error.errors) {
+      console.error(`Validation error on field "${field}": ${error.errors[field].message}`);
     }
 
-    // Assuming you’re using Sequelize/Mongoose/whatever ORM or direct MongoDB
-    const newProduct = await Product.create({
-      name,
-      price,
-      description,
-      category,
-      brand,
-      quantity,
-      sku,
-      compatibility,
-      seller: req.session.user.id,
-      image: imageUrl 
-    });
-    
-    await newProduct.save();
-    // ✅ Redirect to product management page
-    res.redirect('/Seller/productmanagement');
-  } catch (err) {
-    console.error('Error adding product:', err);
-    res.status(500).send('Internal Server Error');
+    // ✅ Send back field errors as response (optional)
+    return res.status(400).send(
+      Object.fromEntries(
+        Object.entries(error.errors).map(([field, errObj]) => [field, errObj.message])
+      )
+    );
   }
+
+  res.status(500).send("Internal Server Error");
+}
 });
 
 // Show only products added by the logged-in seller

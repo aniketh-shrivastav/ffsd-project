@@ -209,7 +209,12 @@
         <% }) %>
       </div>
     <% } %>
-    <div style="text-align: center; margin: 20px;">
+     <div style="text-align: center; margin: 20px;">
+      <a href="/customer/index">
+      <button id="buyproducts-btn" style="padding: 10px 20px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        Buy Products
+      </button>
+      </a>
     </div>
     <% if (items.length > 0) { %>
       <div style="text-align: center; margin: 20px;">
@@ -241,94 +246,96 @@
   <script>
     const userId = "<%= user.id %>";
 
-    function updateQuantity(productId, action) {
-      fetch(`/api/cart/update/${userId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, action })
-      })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to update cart quantity");
-        return res.json();
-      })
-      .then(data => {
-        location.reload();
-      })
-      .catch(err => {
-        alert("Error updating cart");
-        console.error(err);
-      });
+function updateQuantity(productId, action) {
+  fetch(`/api/cart/update/${userId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ productId, action })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Failed to update cart quantity");
+    return res.json();
+  })
+  .then(data => {
+    location.reload();
+  })
+  .catch(err => {
+    alert("Error updating cart");
+    console.error(err);
+  });
+}
+
+function removeItem(productId) {
+  fetch(`/api/cart/remove/${userId}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ productId })
+  })
+  .then(res => res.json())
+  .then(() => location.reload())
+  .catch(err => alert("Failed to remove item"));
+}
+
+document.getElementById("place-order").addEventListener("click", () => {
+  fetch("/customer/create-order", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" }
+  })
+  .then(async res => {
+    if (!res.ok) throw new Error(`Failed to place order: ${res.status}`);
+    try {
+      const data = await res.json();
+      alert("Order placed successfully!");
+      location.href = "/customer/orders"; 
+    } catch (e) {
+      // In case no JSON response (e.g., 204 No Content)
+      alert("Order placed successfully!");
+      location.href = "/customer/history"; 
     }
+  })
+  .catch(err => {
+    alert("Error placing order");
+    console.error(err);
+  });
+});
 
-    function removeItem(productId) {
-      fetch(`/api/cart/remove/${userId}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId })
-      })
-      .then(res => res.json())
-      .then(() => location.reload())
-      .catch(err => alert("Failed to remove item"));
-    }
+document.getElementById("checkout-btn").addEventListener("click", () => {
+  // Step 1: Show payment + order summary
+  document.getElementById("payment-selection").style.display = "block";
 
-    document.getElementById("place-order").addEventListener("click", () => {
-      fetch("/customer/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" }
-      })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to place order");
-        return res.json();
-      })
-      .catch(err => {
-        alert("Error placing order");
-        console.error(err);
-      });
-    });
+  // Grab cart items and compute summary
+  const cartItems = document.querySelectorAll(".cart-item");
+  let summaryHTML = "";
+  let totalCost = 0;
 
-    document.getElementById("checkout-btn").addEventListener("click", () => {
-      // Step 1: Show payment + order summary
-      document.getElementById("payment-selection").style.display = "block";
-    
-      // Grab cart items and compute summary
-      const cartItems = document.querySelectorAll(".cart-item");
-      let summaryHTML = "";
-      let totalCost = 0;
-    
-      cartItems.forEach(item => {
-        const name = item.querySelector(".item-details strong").innerText;
-        const priceText = item.querySelector(".item-details").innerText.match(/₹(\d+)/);
-        const price = priceText ? parseFloat(priceText[1]) : 0;
-        const quantity = parseInt(item.querySelector(".quantity-controls span").innerText);
-    
-        const itemTotal = price * quantity;
-        totalCost += itemTotal;
-    
-        summaryHTML += `
-          <p><strong>${name}</strong> — ₹${price} x ${quantity} = ₹${itemTotal}</p>
-        `;
-      });
-    
-      summaryHTML += `<h3 style="margin-top: 20px;">Total: ₹${totalCost}</h3>`;
-      document.getElementById("order-summary").innerHTML = summaryHTML;
-    });
+  cartItems.forEach(item => {
+    const name = item.querySelector(".item-details strong").innerText;
+    const priceText = item.querySelector(".item-details").innerText.match(/₹(\d+)/);
+    const price = priceText ? parseFloat(priceText[1]) : 0;
+    const quantity = parseInt(item.querySelector(".quantity-controls span").innerText);
 
-    // Step 2: When clicking "Confirm Payment"
+    const itemTotal = price * quantity;
+    totalCost += itemTotal;
+
+    summaryHTML += `
+      <p><strong>${name}</strong> — ₹${price} x ${quantity} = ₹${itemTotal}</p>
+    `;
+  });
+
+  summaryHTML += `<h3 style="margin-top: 20px;">Total: ₹${totalCost}</h3>`;
+  document.getElementById("order-summary").innerHTML = summaryHTML;
+}); // ✅ fixed: removed extra ")"
+
 document.getElementById("confirm-payment").addEventListener("click", () => {
-  // Validate payment method selected
   const selectedPayment = document.querySelector('input[name="payment-method"]:checked');
   if (!selectedPayment) {
     alert("Please select a payment method.");
     return;
   }
 
-  // Hide payment section
   document.getElementById("payment-selection").style.display = "none";
-
-  // Show Place Order / Book Service section
   document.getElementById("checkout-section").style.display = "block";
 
-  // Optional: show confirmation message
   alert("Payment method confirmed! Please proceed to place your order.");
 });
   </script>

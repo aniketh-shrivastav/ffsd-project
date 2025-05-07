@@ -52,6 +52,10 @@ app.use("/api/cart", cartRoutes);
 app.use("/bookings", bookingRoutes);
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true }));
+app.use((err, req, res, next) => {
+  console.error("GLOBAL ERROR HANDLER:", JSON.stringify(err, null, 2));
+  res.status(500).send("Something went wrong!");
+});
 
 // Start Server
 app.listen(3000, () => {
