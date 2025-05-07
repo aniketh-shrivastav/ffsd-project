@@ -13,22 +13,21 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ✅ Add to Cart using form submission interception
-  const form = document.getElementById("add-to-cart-form");
-  if (form) {
+  document.querySelectorAll(".add-to-cart-form").forEach(form => {
     form.addEventListener("submit", async function (e) {
-      e.preventDefault(); // stop default form submission
-
+      e.preventDefault();
+  
       const id = form.querySelector('input[name="id"]').value;
-
+  
       try {
         const response = await fetch("/customer/cart/add", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify({ id })  // Send ID in JSON
+          body: JSON.stringify({ id })
         });
-
+  
         const data = await response.json();
         if (data.success) {
           alert("Item added to cart!");
@@ -40,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
         alert("Error adding to cart");
       }
     });
-  }
+  });
   searchInput.addEventListener("input", filterParts);
 
   // Add to Cart
