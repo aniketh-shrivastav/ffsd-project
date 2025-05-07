@@ -167,8 +167,6 @@
         <h2>My Profile</h2>
       </div>
       <div class="profile-content">
-        <img id="profileImage" src="/images/profile-placeholder.png" alt="Profile Picture" />
-        <input type="file" id="imageUpload" name="profileImage" accept="image/*" />
   
         <form id="profileForm" action="/customer/profile" method="POST">
           <input type="hidden" name="userId" value="<%= user.id %>" />
