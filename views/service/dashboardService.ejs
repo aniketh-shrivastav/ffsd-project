@@ -11,7 +11,6 @@
 <body>
     <%- include("../partials/serviceHeaders") %>
 
-   
     <div class="sidebar" id="sidebar">
         <a href="/service/dashboardService"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
         <a href="/service/profileSettings"><i class="fas fa-user-cog"></i> Profile</a>
@@ -21,104 +20,131 @@
         <a href="/service/reviews"><i class="fas fa-star"></i> Reviews</a>
     </div>
 
-   
     <div class="dashboard-container">
-        
         <div class="dashboard-header">
-           
-            <h2>Welcome ! Here's your daily overview.</h2>
+            <h2>Welcome <%= provider.name %>! Here's your daily overview.</h2>
         </div>
 
-        
         <div class="cards">
             <div class="card">
                 <div class="card-icon">
-                    <i class="fas fa-ruppee-sign"></i>
+                    <i class="fas fa-rupee-sign"></i>
                 </div>
                 <div class="card-content">
                     <h2>Today's Earnings</h2>
-                    <p class="amount">₹1,250</p>
-                    <p class="subtext">+15% from yesterday</p>
+                    <p class="amount">₹<%= todayEarnings %></p>
+                    <p class="subtext">Today's completed services</p>
                 </div>
             </div>
 
-           
             <div class="card">
                 <div class="card-icon">
                     <i class="fas fa-tools"></i>
                 </div>
                 <div class="card-content">
                     <h2>Ongoing Services</h2>
-                    <p class="amount">5</p>
-                    <p class="subtext">In progress</p>
+                    <p class="amount"><%= ongoingServices %></p>
+                    <p class="subtext">Currently in progress</p>
                 </div>
             </div>
 
-           
             <div class="card">
                 <div class="card-icon">
                     <i class="fas fa-check-circle"></i>
                 </div>
                 <div class="card-content">
                     <h2>Completed Services</h2>
-                    <p class="amount">12</p>
+                    <p class="amount"><%= completedServices %></p>
                     <p class="subtext">This week</p>
                 </div>
             </div>
 
-           
             <div class="card">
                 <div class="card-icon">
                     <i class="fas fa-smile"></i>
                 </div>
                 <div class="card-content">
                     <h2>Customer Satisfaction</h2>
-                    <p class="amount">4.8/5</p>
-                    <p class="subtext">Based on 120 reviews</p>
+                    <p class="amount"><%= avgRating %>/5</p>
+                    <p class="subtext">Based on <%= reviewCount %> reviews</p>
                 </div>
             </div>
         </div>
 
-        
         <div class="charts">
-           
             <div class="chart-card">
-                <h2>Service Distribution</h2>
-                <canvas id="servicePieChart"></canvas>
+              <h2>Service Distribution</h2>
+              <canvas id="servicePieChart"></canvas>
+              <div class="chart-legend" id="pieLegend"></div>
             </div>
-
           
             <div class="chart-card">
-                <h2>Earnings Overview</h2>
-                <canvas id="earningsBarChart"></canvas>
+              <h2>Earnings Overview</h2>
+              <canvas id="earningsBarChart"></canvas>
             </div>
-        </div>
-
-       
-        <div class="recent-activity">
+          </div>
+          <div class="recent-activity">
             <h2>Recent Activity</h2>
             <ul class="activity-list">
-                <li>
-                    <i class="fas fa-check-circle"></i>
-                    <span>Completed: Brake Repair for Karthick</span>
-                    <span class="time">2 hours ago</span>
-                </li>
-                <li>
-                    <i class="fas fa-tools"></i>
-                    <span>Started: Oil Change for Suresh</span>
-                    <span class="time">4 hours ago</span>
-                </li>
-                <li>
-                    <i class="fas fa-star"></i>
-                    <span>New Review: 5 stars from Harish</span>
-                    <span class="time">1 day ago</span>
-                </li>
+                <% recentActivities.forEach(activity => { %>
+                    <li class="<%= activity.status === 'Completed' ? 'completed' : '' %>">
+                        <% if (activity.rating) { %>
+                            <div class="rating-badge">
+                                <%= helpers.renderStars(activity.rating) %>
+                            </div>
+                        <% } %>
+                        
+                        <div class="activity-content">
+                            <p>
+                                <strong><%= activity.customerId.name %></strong>
+                                <% if (activity.status === 'Completed') { %>
+                                    completed <%= activity.selectedServices.join(", ") %>
+                                <% } else { %>
+                                    booked <%= activity.selectedServices.join(", ") %>
+                                <% } %>
+                            </p>
+                            <small>
+                                <%= activity.updatedAt.toLocaleString() %>
+                                <% if (activity.review) { %>
+                                    <br>"<%= activity.review %>"
+                                <% } %>
+                            </small>
+                        </div>
+                        
+                        <div class="activity-earning">
+                            <% if (activity.status === 'Completed') { %>
+                                ₹<%= activity.totalCost.toFixed(2) %>
+                            <% } %>
+                        </div>
+                    </li>
+                <% }); %>
             </ul>
         </div>
+        <!-- <div class="recent-activity">
+            <h2>Recent Activity</h2>
+            <ul class="activity-list">
+                <% recentActivities.forEach(activity => { %>
+                    <li>
+                        <% if(activity.status === 'Completed') { %>
+                            <i class="fas fa-check-circle" style="color: #1abc9c;"></i>
+                            <span>Completed service for <%= activity.customerId.name %></span>
+                        <% } else if(activity.status === 'Confirmed') { %>
+                            <i class="fas fa-tools" style="color: #3498db;"></i>
+                            <span>Started service for <%= activity.customerId.name %></span>
+                        <% } else if(activity.rating) { %>
+                            <i class="fas fa-star" style="color: #f1c40f;"></i>
+                            <span>New <%= activity.rating %> star review from <%= activity.customerId.name %></span>
+                        <% } else { %>
+                            <i class="fas fa-calendar-plus" style="color: #9b59b6;"></i>
+                            <span>New booking from <%= activity.customerId.name %></span>
+                        <% } %>
+                        <span class="time"><%= activity.createdAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %></span>
+                    </li>
+                <% }); %>
+            </ul> -->
+        <!-- </div> -->
     </div>
 
-
- 
     <script src="/scripts/dashboardService.js"></script>
 </body>
 </html>
