@@ -93,9 +93,22 @@ router.post('/updateBookingStatus', serviceOnly, async (req, res) => {
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
-
+    const validTransitions = {
+      'Open': ['Confirmed', 'Rejected'],
+      'Confirmed': ['Completed', 'Rejected'],
+      'Completed': [], // Can't change from completed
+      'Rejected': [] // Can't change from rejected
+    };
+    if (!validTransitions[booking.status].includes(newStatus)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Invalid status transition from ${booking.status} to ${newStatus}`
+      });
+    }
     booking.status = newStatus;
     await booking.save();
+
+    
 
     res.json({ success: true });
   } catch (err) {
@@ -195,5 +208,56 @@ router.post('/updateCost/:id', serviceOnly, async (req, res) => {
   }
 });
 
+// Updated rating submission route
+router.post('/submit-rating/:id', async (req, res) => {
+  try {
+      const { rating, review } = req.body;
+      const bookingId = req.params.id;
 
+      // Validate rating
+      if (!rating || rating < 1 || rating > 5) {
+          return res.status(400).json({ error: "Please provide a valid rating (1-5)" });
+      }
+
+      const updatedBooking = await ServiceBooking.findByIdAndUpdate(
+          bookingId,
+          { 
+              rating: parseInt(rating),
+              review: review || "",
+              status: "Completed" // Ensure status is marked as completed
+          },
+          { new: true }
+      ).populate('customerId', 'name');
+
+      if (!updatedBooking) {
+          return res.status(404).json({ error: "Booking not found" });
+      }
+
+      // Update provider's average rating
+      await updateProviderRating(updatedBooking.providerId);
+
+      res.json({ 
+          success: true,
+          message: "Rating submitted successfully!",
+          booking: updatedBooking
+      });
+
+  } catch (error) {
+      console.error("Rating submission error:", error);
+      res.status(500).json({ error: "Failed to submit rating" });
+  }
+});
+
+// Helper function to update provider's average rating
+async function updateProviderRating(providerId) {
+  const stats = await ServiceBooking.aggregate([
+      { $match: { providerId: providerId, rating: { $exists: true } } },
+      { $group: { _id: null, avgRating: { $avg: "$rating" }, count: { $sum: 1 } } }
+  ]);
+  
+  await User.findByIdAndUpdate(providerId, {
+      averageRating: stats[0]?.avgRating || 0,
+      ratingCount: stats[0]?.count || 0
+  });
+}
 module.exports = router;

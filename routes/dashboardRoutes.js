@@ -62,44 +62,53 @@ router.get('/dashboardService', async (req, res) => {
             }
         ]);
 
-        // Service distribution data
-        const serviceDistribution = await ServiceBooking.aggregate([
-            { $match: { providerId: providerId } },
-            { $unwind: '$selectedServices' },
-            { 
-                $group: { 
-                    _id: '$selectedServices',
-                    count: { $sum: 1 }
-                } 
-            },
-            { $sort: { count: -1 } },
-            { $limit: 5 }
-        ]);
+     
 
         // Weekly earnings data
+        // Weekly earnings data - more detailed aggregation
         const earningsData = await ServiceBooking.aggregate([
             { 
                 $match: { 
                     providerId: providerId,
-                    status: 'Completed',
+                    status: "Completed",
                     createdAt: { $gte: oneWeekAgo }
                 } 
             },
             {
                 $group: {
                     _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-                    total: { $sum: '$totalCost' }
+                    totalEarnings: { $sum: "$totalCost" },
+                    completedCount: { $sum: 1 }
                 }
             },
             { $sort: { _id: 1 } }
         ]);
-
+  
+  // Service distribution - include earnings per service
+  const serviceDistribution = await ServiceBooking.aggregate([
+    { $match: { providerId: providerId, status: "Completed" } },
+    { $unwind: "$selectedServices" },
+    { 
+        $group: { 
+            _id: "$selectedServices",
+            serviceCount: { $sum: 1 },
+            totalRevenue: { $sum: { 
+                $divide: ["$totalCost", { $size: "$selectedServices" }]
+            }}
+        } 
+    },
+    { $sort: { serviceCount: -1 } }
+]);
         // Recent activities
         const recentActivities = await ServiceBooking.find({
-            providerId: providerId
+            providerId: providerId,
+            $or: [
+                { status: "Completed" },
+                { rating: { $exists: true } }
+            ]
         })
-        .sort({ createdAt: -1 })
-        .limit(3)
+        .sort({ updatedAt: -1 })
+        .limit(5)
         .populate('customerId', 'name');
 
         res.render('service/dashboardService', {
@@ -111,8 +120,19 @@ router.get('/dashboardService', async (req, res) => {
             reviewCount: reviews[0]?.count || 0,
             serviceDistribution,
             earningsData,
-            recentActivities
-        });
+            recentActivities,
+            helpers: {
+                renderStars: function(rating) {
+                    let stars = '';
+                    for (let i = 1; i <= 5; i++) {
+                        stars += i <= rating ? '★' : '☆';
+                    }
+                    return stars;
+                }
+            }
+
+     } );
+    
     } catch (err) {
         console.error('Dashboard error:', err);
         res.status(500).send('Server Error');

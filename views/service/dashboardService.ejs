@@ -73,17 +73,54 @@
 
         <div class="charts">
             <div class="chart-card">
-                <h2>Service Distribution</h2>
-                <canvas id="servicePieChart"></canvas>
+              <h2>Service Distribution</h2>
+              <canvas id="servicePieChart"></canvas>
+              <div class="chart-legend" id="pieLegend"></div>
             </div>
-
+          
             <div class="chart-card">
-                <h2>Earnings Overview</h2>
-                <canvas id="earningsBarChart"></canvas>
+              <h2>Earnings Overview</h2>
+              <canvas id="earningsBarChart"></canvas>
             </div>
+          </div>
+          <div class="recent-activity">
+            <h2>Recent Activity</h2>
+            <ul class="activity-list">
+                <% recentActivities.forEach(activity => { %>
+                    <li class="<%= activity.status === 'Completed' ? 'completed' : '' %>">
+                        <% if (activity.rating) { %>
+                            <div class="rating-badge">
+                                <%= helpers.renderStars(activity.rating) %>
+                            </div>
+                        <% } %>
+                        
+                        <div class="activity-content">
+                            <p>
+                                <strong><%= activity.customerId.name %></strong>
+                                <% if (activity.status === 'Completed') { %>
+                                    completed <%= activity.selectedServices.join(", ") %>
+                                <% } else { %>
+                                    booked <%= activity.selectedServices.join(", ") %>
+                                <% } %>
+                            </p>
+                            <small>
+                                <%= activity.updatedAt.toLocaleString() %>
+                                <% if (activity.review) { %>
+                                    <br>"<%= activity.review %>"
+                                <% } %>
+                            </small>
+                        </div>
+                        
+                        <div class="activity-earning">
+                            <% if (activity.status === 'Completed') { %>
+                                ₹<%= activity.totalCost.toFixed(2) %>
+                            <% } %>
+                        </div>
+                    </li>
+                <% }); %>
+            </ul>
         </div>
-
-        <div class="recent-activity">
+        <!-- <div class="recent-activity">
             <h2>Recent Activity</h2>
             <ul class="activity-list">
                 <% recentActivities.forEach(activity => { %>
@@ -104,8 +141,8 @@
                         <span class="time"><%= activity.createdAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %></span>
                     </li>
                 <% }); %>
-            </ul>
-        </div>
+            </ul> -->
+        <!-- </div> -->
     </div>
 
     <script src="/scripts/dashboardService.js"></script>
