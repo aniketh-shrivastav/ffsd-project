@@ -286,27 +286,20 @@ router.get("/product/:id", customerOnly, async (req, res) => {
   }
 });
 
-router.post('/rate-service/:id',customerOnly, async (req, res) => {
+router.post('/rate-service/:id', customerOnly, async (req, res) => {
   const { rating, review } = req.body;
   const bookingId = req.params.id;
 
   try {
-    // await ServiceBooking.findByIdAndUpdate(bookingId, {
-    //   rating: Number(rating),
-    //   review: review || ''
-    // });
-
-    // res.status(200).json({ success: true, message: 'Thank you for rating the service!' });
-
     const booking = await ServiceBooking.findById(bookingId);
-    
+
     // Validate booking exists and belongs to this customer
     if (!booking || booking.customerId.toString() !== req.session.user.id) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
 
     // Can only rate completed services
-    if (booking.status !== 'Completed') {
+    if (booking.status !== 'Ready') {
       return res.status(400).json({ 
         success: false, 
         message: 'You can only rate completed services' 
@@ -318,10 +311,10 @@ router.post('/rate-service/:id',customerOnly, async (req, res) => {
     booking.review = review || '';
     await booking.save();
 
-    res.status(200).json({ success: true, message: 'Thank you for your rating!' });
+    return res.status(200).json({ success: true, message: 'Thank you for your rating!' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: 'Something went wrong while submitting the rating.' });
+    return res.status(500).json({ success: false, message: 'Something went wrong while submitting the rating.' });
   }
 });
 
