@@ -24,24 +24,77 @@ const serviceOnly = [isAuthenticated, isService];
 router.get("/dashboardService", serviceOnly, async (req, res) => {
   try {
     const providerId = new mongoose.Types.ObjectId(req.session.user.id);
-    console.log(providerId); // ✔️ use new
 
+    // 🔹 Service Distribution
     const bookings = await ServiceBooking.aggregate([
-      { $match: { providerId: providerId } },
+      { $match: { providerId } },
       { $unwind: "$selectedServices" },
       { $group: { _id: "$selectedServices", count: { $sum: 1 } } },
       { $sort: { count: -1 } }
     ]);
-    console.log(bookings); // ✔️ use new
 
     const serviceLabels = bookings.map(b => b._id);
     const serviceCounts = bookings.map(b => b.count);
-    console.log(serviceLabels); // ✔️ use new
-    console.log(serviceCounts); // ✔️ use new
+
+    // 🔹 Total Earnings (after 20% commission)
+    const totalEarningsResult = await ServiceBooking.aggregate([
+      {
+        $match: {
+          providerId,
+          totalCost: { $exists: true }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$totalCost" }
+        }
+      }
+    ]);
+
+    const grossEarnings = totalEarningsResult[0]?.total || 0;
+    const netEarnings = Math.round(grossEarnings * 0.8); // Deduct 20% commission
+
+    // 🔹 Ongoing Services ("Confirmed")
+    const ongoingCount = await ServiceBooking.countDocuments({
+      providerId,
+      status: "Confirmed"
+    });
+
+    // 🔹 Completed Services ("Ready")
+    const completedCount = await ServiceBooking.countDocuments({
+      providerId,
+      status: "Ready"
+    });
+
+    // 🔹 Customer Satisfaction
+    const ratingData = await ServiceBooking.aggregate([
+      {
+        $match: {
+          providerId,
+          rating: { $exists: true }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          avgRating: { $avg: "$rating" },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const avgRating = ratingData[0]?.avgRating?.toFixed(1) || "N/A";
+    const totalReviews = ratingData[0]?.count || 0;
 
     res.render("service/dashboardService", {
       serviceLabels,
-      serviceCounts
+      serviceCounts,
+      todaysEarnings: netEarnings, // Reusing the same variable name for compatibility
+      ongoingCount,
+      completedCount,
+      avgRating,
+      totalReviews
     });
 
   } catch (err) {

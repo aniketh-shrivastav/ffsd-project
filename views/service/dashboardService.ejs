@@ -43,54 +43,50 @@
         </div>
 
         
-        <div class="cards">
-            <div class="card">
-                <div class="card-icon">
-                    <i class="fas fa-ruppee-sign"></i>
-                </div>
-                <div class="card-content">
-                    <h2>Today's Earnings</h2>
-                    <p class="amount">₹1,250</p>
-                    <p class="subtext">+15% from yesterday</p>
-                </div>
+        <div class="card">
+            <div class="card-icon">
+              <i class="fas fa-rupee-sign"></i>
             </div>
-
-           
-            <div class="card">
-                <div class="card-icon">
-                    <i class="fas fa-tools"></i>
-                </div>
-                <div class="card-content">
-                    <h2>Ongoing Services</h2>
-                    <p class="amount">5</p>
-                    <p class="subtext">In progress</p>
-                </div>
+            <div class="card-content">
+                <h2>Total Earnings</h2>
+                <p class="amount">₹<%= todaysEarnings %></p>
+                <p class="subtext">After 20% commission</p> <!-- Optional: calculate this too -->
             </div>
-
-           
-            <div class="card">
-                <div class="card-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="card-content">
-                    <h2>Completed Services</h2>
-                    <p class="amount">12</p>
-                    <p class="subtext">This week</p>
-                </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-icon">
+              <i class="fas fa-tools"></i>
             </div>
-
-           
-            <div class="card">
-                <div class="card-icon">
-                    <i class="fas fa-smile"></i>
-                </div>
-                <div class="card-content">
-                    <h2>Customer Satisfaction</h2>
-                    <p class="amount">4.8/5</p>
-                    <p class="subtext">Based on 120 reviews</p>
-                </div>
+            <div class="card-content">
+                <h2>Confirmed Services</h2>
+                <p class="amount"><%= ongoingCount %></p>
+                <p class="subtext">Currently active</p>
+                
             </div>
-        </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-icon">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="card-content">
+                <h2>Ready for Delivery</h2>
+                <p class="amount"><%= completedCount %></p>
+                <p class="subtext">Total completed</p>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-icon">
+              <i class="fas fa-smile"></i>
+            </div>
+            <div class="card-content">
+              <h2>Customer Satisfaction</h2>
+              <p class="amount"><%= avgRating %>/5</p>
+              <p class="subtext">Based on <%= totalReviews %> reviews</p>
+            </div>
+          </div>
 
         
             <div class="charts">
