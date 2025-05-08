@@ -20,6 +20,7 @@ body {
     left:0;
     width:100vw;
     height:80px;
+    z-index: 1000;
 }
 
 .nav-links {
@@ -108,10 +109,6 @@ body {
     font-size: 16px;
     color: #666;
 }
-canvas {
-    width: 100% !important;
-    height: 100% !important;
-}
 /* Cards Section */
 .cards {
     display: grid;
@@ -160,6 +157,7 @@ canvas {
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 20px;
     margin-bottom: 30px;
+    
 }
 
 /* Chart Cards */
@@ -168,14 +166,24 @@ canvas {
     padding: 45px;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    height: 400px;
     overflow: hidden; 
+    height: auto;
+    min-height: 400px;
+    z-index: 1; /* or just leave it out */
+    position: relative; /* required if you're using z-index */
+
 }
 
 .chart-card h2 {
     font-size: 20px;
     margin: 0 0 15px;
     color: #0f2944;
+}
+
+.chart-wrapper {
+    width: 100%;
+    height: 250px;
+    position: relative;
 }
 
 

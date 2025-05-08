@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
 const ServiceBooking = require("../models/serviceBooking");
+const mongoose = require("mongoose");
 
 // Middleware
 const isAuthenticated = (req, res, next) => {
@@ -20,9 +21,34 @@ const serviceOnly = [isAuthenticated, isService];
 // Routes
 
 // Dashboard
-// router.get("/dashboardService", serviceOnly, (req, res) => {
-//   res.render("service/dashboardService");
-// });
+router.get("/dashboardService", serviceOnly, async (req, res) => {
+  try {
+    const providerId = new mongoose.Types.ObjectId(req.session.user.id);
+    console.log(providerId); // ✔️ use new
+
+    const bookings = await ServiceBooking.aggregate([
+      { $match: { providerId: providerId } },
+      { $unwind: "$selectedServices" },
+      { $group: { _id: "$selectedServices", count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+    console.log(bookings); // ✔️ use new
+
+    const serviceLabels = bookings.map(b => b._id);
+    const serviceCounts = bookings.map(b => b.count);
+    console.log(serviceLabels); // ✔️ use new
+    console.log(serviceCounts); // ✔️ use new
+
+    res.render("service/dashboardService", {
+      serviceLabels,
+      serviceCounts
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error loading dashboard");
+  }
+});
 
 // Profile Settings
 router.get("/profileSettings", serviceOnly, async (req, res) => {
