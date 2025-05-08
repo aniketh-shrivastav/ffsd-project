@@ -220,6 +220,38 @@ router.get('/history', customerOnly, async (req, res) => {
   }
 });
 
+router.post('/cancel-order/:id', customerOnly, async (req, res) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, userId: req.session.user.id });
+    if (!order || order.orderStatus !== 'pending') {
+      return res.status(400).send("Cannot cancel this order.");
+    }
+
+    await Order.findByIdAndDelete(order._id);
+    res.redirect('/customer/history');
+  } catch (err) {
+    console.error("Cancel order error:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Cancel Service Booking
+router.post('/cancel-service/:id', customerOnly, async (req, res) => {
+  try {
+    const booking = await ServiceBooking.findOne({ _id: req.params.id, customerId: req.session.user.id });
+    if (!booking || booking.status !== 'Open') {
+      return res.status(400).send("Cannot cancel this service.");
+    }
+
+    await ServiceBooking.findByIdAndDelete(booking._id);
+    res.redirect('/customer/history');
+  } catch (err) {
+    console.error("Cancel service error:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+
 router.get("/payment", customerOnly, (req, res) => {
   res.render("customer/payment");
 });
