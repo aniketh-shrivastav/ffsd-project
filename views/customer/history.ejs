@@ -84,6 +84,7 @@
               <li class="history-item">
                 <div class="item-details">
                   <h3><%= service.selectedServices.join(", ") %></h3>
+                  <p><strong>Service ID:</strong><%= service._id%></p>
                   <p><strong>Service Provider:</strong> <%= service.providerId.name %> | <%= service.providerId.phone %></p>
                   <p><strong>Booked on:</strong> <%= service.createdAt.toLocaleDateString() %></p>
                   <p><strong>Car Model:</strong> <%= service.carModel %></p>
@@ -117,6 +118,7 @@
               <li class="history-item">
                 <div class="item-details">
                   <h3><%= service.selectedServices.join(", ") %></h3>
+                  <p><strong>Service ID:</strong><%= service._id%></p>
                   <p><strong>Service Provider:</strong> <%= service.providerId.name %> | <%= service.providerId.phone %></p>
                   <p><strong>Booked on:</strong> <%= service.createdAt.toLocaleDateString() %></p>
                   <p><strong>Car Model:</strong> <%= service.carModel %></p>
