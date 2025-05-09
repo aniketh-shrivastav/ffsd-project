@@ -41,6 +41,7 @@
             <th>Order ID</th>
             <th>Seller</th>
             <th>Customer</th>
+            <th>Products</th>
             <th>Status</th>
             <th>Action</th>
           </tr>
@@ -58,6 +59,11 @@
                   <%= o.userId?.name %> 
                   (<%= o.userId?.email %>)
                 </td>
+                <td>
+  <ul>
+    <li><strong><%= item.name %></strong> (x<%= item.quantity %>)</li>
+  </ul>
+</td>
                 <td><%= o.orderStatus %></td>
                 <td>
                   <% if (o.orderStatus !== 'cancelled') { %>

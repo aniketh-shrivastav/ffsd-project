@@ -305,6 +305,20 @@ router.post('/profile', async (req, res) => {
     res.status(500).send("Error updating profile");
   }
 });
+
+router.delete('/delete-profile', customerOnly, async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ message: "User ID missing" });
+
+    await User.findByIdAndDelete(userId);
+    res.status(200).json({ message: "User deleted" });
+  } catch (err) {
+    console.error("Delete error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 router.get("/product/:id", customerOnly, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).populate("seller", "name");

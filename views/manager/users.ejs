@@ -101,12 +101,16 @@
                                     <td><%= user.name %></td>
                                     <td><%= user.email %></td>
                                     <td>
-                                        <% if (!user.suspended) { %>
-                                            <button class="btn-suspend" data-user-id="<%= user._id %>">Suspend</button>
-                                        <% } else { %>
-                                            <button class="btn-restore" data-user-id="<%= user._id %>">Restore</button>
-                                        <% } %>
-                                    </td>
+    <% if (user.role !== 'manager') { %>
+        <% if (!user.suspended) { %>
+            <button class="btn-suspend" data-user-id="<%= user._id %>">Suspend</button>
+        <% } else { %>
+            <button class="btn-restore" data-user-id="<%= user._id %>">Restore</button>
+        <% } %>
+    <% } else { %>
+        <span>Not Allowed</span>
+    <% } %>
+</td>
                                 </tr>
                             <% }) %>
                         </tbody>
